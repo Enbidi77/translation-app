@@ -40,13 +40,9 @@ describe('SubtitleWindowManager', () => {
     vi.clearAllMocks();
   });
 
-  it('should initialize singleton instance with default entry', () => {
+  it('should initialize singleton instance', () => {
     const manager = SubtitleWindowManager.getInstance();
     expect(manager).toBeDefined();
-    const current = manager.getCurrentEntry();
-    expect(current).toBeDefined();
-    expect(current.original).toBeTruthy();
-    expect(current.translation).toBeTruthy();
   });
 
   it('should update currentEntry and send to webContents', async () => {

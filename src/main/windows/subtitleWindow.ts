@@ -11,11 +11,7 @@ export interface SubtitleDataEntry {
 export class SubtitleWindowManager {
   private static instance: SubtitleWindowManager | null = null;
   private window: BrowserWindow | null = null;
-  private currentEntry: SubtitleDataEntry = {
-    original: '你好，很高兴认识你！',
-    pinyin: 'nǐ hǎo, hěn gāoxìng rènshí nǐ!',
-    translation: 'Xin chào, rất vui được làm quen với bạn!',
-  };
+  private currentEntry: SubtitleDataEntry | null = null;
 
   public static getInstance(): SubtitleWindowManager {
     if (!SubtitleWindowManager.instance) {
@@ -32,7 +28,7 @@ export class SubtitleWindowManager {
     return Boolean(this.window && !this.window.isDestroyed() && this.window.isVisible());
   }
 
-  public getCurrentEntry(): SubtitleDataEntry {
+  public getCurrentEntry(): SubtitleDataEntry | null {
     return this.currentEntry;
   }
 
@@ -123,12 +119,12 @@ export class SubtitleWindowManager {
 
     await this.window.loadURL(normalizedUrl);
 
-    this.window.webContents.once('did-finish-load', () => {
+    if (this.window && !this.window.isDestroyed()) {
       if (this.currentEntry) {
-        this.window?.webContents.send(IPC_CHANNELS.EVENT_SUBTITLE_DATA, this.currentEntry);
+        this.window.webContents.send(IPC_CHANNELS.EVENT_SUBTITLE_DATA, this.currentEntry);
       }
-      this.window?.show();
-    });
+      this.window.show();
+    }
 
     this.window.on('closed', () => {
       this.window = null;
@@ -143,6 +139,9 @@ export class SubtitleWindowManager {
     if (!this.window || this.window.isDestroyed()) {
       if (autoShow) {
         await this.createWindow();
+        if (this.window && !this.window.isDestroyed()) {
+          this.window.webContents.send(IPC_CHANNELS.EVENT_SUBTITLE_DATA, entry);
+        }
       }
       return;
     }

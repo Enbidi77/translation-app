@@ -22,9 +22,9 @@ export const SubtitleOverlay: React.FC = () => {
   } = useSettingsStore();
 
   const [currentEntry, setCurrentEntry] = useState<SubtitleEntry>({
-    original: '你好，很高兴认识你！',
-    pinyin: 'nǐ hǎo, hěn gāoxìng rènshí nǐ!',
-    translation: 'Xin chào, rất vui được làm quen với bạn!',
+    original: '',
+    pinyin: '',
+    translation: '',
   });
 
   const [clickThrough, setClickThrough] = useState(false);

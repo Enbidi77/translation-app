@@ -17,13 +17,18 @@ import {
   Palette,
   Send,
   Plus,
-  Volume2
+  Volume2,
+  Key,
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { useAppStore } from '../stores/useAppStore';
 import { TonePinyin } from '../components/common/TonePinyin';
 import { AudioPlayer } from '../components/common/AudioPlayer';
 import { SubtitleThemeMode } from '../../shared/design/theme';
+import { soundManager } from '../services/audioService';
 
 interface SubtitleLine {
   id: number;
@@ -41,6 +46,15 @@ export const SubtitlesPage: React.FC = () => {
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
   const [quickInput, setQuickInput] = useState('');
   const [isQuickBroadcasting, setIsQuickBroadcasting] = useState(false);
+
+  // Quick API Key setup state
+  const [quickKeyInput, setQuickKeyInput] = useState('');
+  const [isSavingKey, setIsSavingKey] = useState(false);
+
+  const hasApiKey = Boolean(
+    settings.providers?.geminiApiKey?.trim() || 
+    settings.providers?.openaiApiKey?.trim()
+  );
 
   // Live microphone real-time subtitle translation
   const [isListening, setIsListening] = useState(false);
@@ -117,15 +131,37 @@ export const SubtitlesPage: React.FC = () => {
     }
   };
 
-  const handleBroadcastLine = (sub: SubtitleLine) => {
+  const handleBroadcastLine = async (sub: SubtitleLine) => {
+    // Play native TTS audio so user hears sound
+    await soundManager.playText(sub.chinese, 'zh', false);
+
     if (window.electronAPI?.sendSubtitleEntry) {
-      window.electronAPI.sendSubtitleEntry({
+      await window.electronAPI.sendSubtitleEntry({
         original: sub.chinese,
         pinyin: sub.pinyin,
         translation: sub.vietnamese,
       }, true);
       setIsOverlayOpen(true);
-      showToast(`Đã phát dòng #${sub.id} lên cửa sổ phụ đề nổi!`, 'success');
+      showToast(`Đã phát âm thanh và hiển thị dòng #${sub.id} lên phụ đề nổi!`, 'success');
+    }
+  };
+
+  const handleSaveQuickKey = async () => {
+    if (!quickKeyInput.trim()) return;
+    setIsSavingKey(true);
+    try {
+      await updateSettings({
+        providers: {
+          ...settings.providers,
+          geminiApiKey: quickKeyInput.trim(),
+        },
+      });
+      showToast('Đã lưu Gemini API Key thành công! Bạn có thể bật micro để nhận diện ngay.', 'success');
+      setQuickKeyInput('');
+    } catch (err: any) {
+      showToast(`Không thể lưu API Key: ${err.message}`, 'error');
+    } finally {
+      setIsSavingKey(false);
     }
   };
 
@@ -142,8 +178,12 @@ export const SubtitlesPage: React.FC = () => {
           mode: 'natural',
         });
 
+        // Play TTS audio
+        const lang = /[\u4e00-\u9fa5]/.test(transRes.sourceText) ? 'zh' : 'en';
+        soundManager.playText(transRes.sourceText, lang, false);
+
         if (window.electronAPI?.sendSubtitleEntry) {
-          window.electronAPI.sendSubtitleEntry({
+          await window.electronAPI.sendSubtitleEntry({
             original: transRes.sourceText,
             pinyin: transRes.pinyin,
             translation: transRes.translatedText,
@@ -192,6 +232,11 @@ export const SubtitlesPage: React.FC = () => {
       return;
     }
 
+    if (!hasApiKey) {
+      showToast('Vui lòng dán Gemini API Key miễn phí bên dưới để kích hoạt micro!', 'warning');
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true },
@@ -234,7 +279,7 @@ export const SubtitlesPage: React.FC = () => {
 
               if (res.success && res.transcript) {
                 // Broadcast to subtitle overlay with autoShow = true
-                window.electronAPI?.sendSubtitleEntry({
+                await window.electronAPI?.sendSubtitleEntry({
                   original: res.transcript,
                   pinyin: res.pinyin,
                   translation: res.translation || '',
@@ -251,11 +296,18 @@ export const SubtitlesPage: React.FC = () => {
                   vietnamese: res.translation || '',
                 };
                 setSubtitlesList((prev) => [newItem, ...prev]);
-                showToast('Đã cập nhật phụ đề nổi!', 'success');
+                showToast('Đã nhận diện giọng nói và cập nhật phụ đề nổi!', 'success');
+              } else {
+                if (res.errorCode === 'NO_API_KEY') {
+                  showToast('Cần cấu hình Gemini API Key (Miễn phí 100%) để micro nhận diện giọng nói!', 'warning');
+                } else {
+                  showToast(res.error || 'Chưa nhận diện được giọng nói, vui lòng thử lại!', 'warning');
+                }
               }
             };
           } catch (err) {
             setIsProcessing(false);
+            showToast('Lỗi xử lý âm thanh.', 'error');
           }
         }
 
@@ -265,7 +317,7 @@ export const SubtitlesPage: React.FC = () => {
             if (isListeningRef.current) {
               handleToggleLiveListening();
             }
-          }, 300);
+          }, 400);
         }
       };
 
@@ -279,7 +331,7 @@ export const SubtitlesPage: React.FC = () => {
         setIsOverlayOpen(true);
       }
 
-      showToast('Đang lắng nghe... Nói một câu để phát phụ đề lên màn hình!', 'info');
+      showToast('Đang lắng nghe... Hãy nói một câu để phát phụ đề lên màn hình!', 'info');
     } catch (err: any) {
       setIsListening(false);
       isListeningRef.current = false;
@@ -335,13 +387,13 @@ export const SubtitlesPage: React.FC = () => {
 
         {/* Master Floating Window Toggle with Status Indicator */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-surface border border-border shadow-google-sm text-xs">
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-surface border border-border shadow-google-sm text-xs">
             <span
               className={`w-2.5 h-2.5 rounded-full ${
                 isOverlayOpen ? 'bg-success animate-pulse' : 'bg-muted-foreground/40'
               }`}
             />
-            <span className="font-medium text-foreground">
+            <span className="font-semibold text-foreground">
               {isOverlayOpen ? 'Phụ đề đang hiển thị' : 'Phụ đề đang ẩn'}
             </span>
           </div>
@@ -359,6 +411,51 @@ export const SubtitlesPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Quick API Key Banner if not set */}
+      {!hasApiKey && (
+        <div className="p-4 bg-primary-muted border border-primary/30 rounded-3xl space-y-3 shadow-google-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs">
+              <Key className="w-4 h-4 text-primary" />
+              <span className="font-bold text-foreground">
+                Để nhận diện giọng nói trực tiếp qua Micro (Live Speech-to-Text):
+              </span>
+            </div>
+            <a
+              href="https://aistudio.google.com/app/apikey"
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
+            >
+              <span>Lấy Gemini API Key miễn phí 100% tại Google AI Studio</span>
+              <ArrowRight className="w-3 h-3" />
+            </a>
+          </div>
+
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Dán Google Gemini API Key bên dưới để kích hoạt tính năng micro nhận diện tiếng Trung / Anh / Việt:
+          </p>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="password"
+              value={quickKeyInput}
+              onChange={(e) => setQuickKeyInput(e.target.value)}
+              placeholder="Dán Gemini API Key (AIzaSy...)"
+              className="flex-1 bg-surface border border-border text-foreground px-3.5 py-2 rounded-2xl text-xs focus:outline-none focus:border-primary shadow-google-sm font-mono"
+            />
+            <button
+              onClick={handleSaveQuickKey}
+              disabled={isSavingKey || !quickKeyInput.trim()}
+              className="px-4 py-2 rounded-2xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-primary-foreground font-semibold text-xs shadow-google-sm transition-all flex items-center gap-1.5 shrink-0"
+            >
+              {isSavingKey ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+              <span>Lưu & Bắt đầu</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Real-Time Live Microphone & Broadcast Station */}
       <div className="p-6 bg-card border border-border rounded-3xl space-y-5 shadow-google-md">
@@ -438,7 +535,7 @@ export const SubtitlesPage: React.FC = () => {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleQuickBroadcast();
               }}
-              placeholder="Nhập hoặc dán câu tiếng Trung/Anh để phát phụ đề lên màn hình ngay..."
+              placeholder="Nhập hoặc dán câu tiếng Trung/Anh để phát âm thanh & phụ đề lên màn hình ngay..."
               className="flex-1 bg-transparent px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
             <button
@@ -537,7 +634,7 @@ export const SubtitlesPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <FileVideo className="w-5 h-5 text-primary" />
             <span className="text-sm font-bold text-foreground">
-              Danh sách phụ đề song ngữ (Bấm nút "Phát" để ghim lên màn hình)
+              Danh sách phụ đề song ngữ (Bấm "Phát lên màn hình" để nghe phát âm & ghim nổi)
             </span>
           </div>
 
@@ -569,11 +666,10 @@ export const SubtitlesPage: React.FC = () => {
               <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
                 <span>{sub.startTime} ➔ {sub.endTime}</span>
                 <div className="flex items-center gap-2">
-                  <AudioPlayer text={sub.chinese} lang="zh" size="sm" />
                   <button
                     onClick={() => handleBroadcastLine(sub)}
-                    className="px-2.5 py-1 rounded-xl bg-primary-muted hover:bg-primary text-primary hover:text-primary-foreground border border-primary/30 font-sans font-semibold text-xs flex items-center gap-1 transition-all shadow-google-sm"
-                    title="Gửi dòng phụ đề này lên cửa sổ nổi trên màn hình"
+                    className="px-3 py-1.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-sans font-semibold text-xs flex items-center gap-1.5 transition-all shadow-google-sm cursor-pointer"
+                    title="Phát giọng đọc và ghim dòng này lên phụ đề nổi trên màn hình"
                   >
                     <Play className="w-3 h-3 fill-current" />
                     <span>Phát lên màn hình</span>

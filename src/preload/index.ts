@@ -104,7 +104,7 @@ export const electronAPI = {
   toggleSubtitleOverlay: (): Promise<boolean> => ipcRenderer.invoke('subtitle:toggle'),
   hideSubtitleOverlay: () => ipcRenderer.invoke('subtitle:hide'),
   isSubtitleOverlayOpen: (): Promise<boolean> => ipcRenderer.invoke('subtitle:is-open'),
-  getCurrentSubtitle: (): Promise<{ original: string; pinyin?: string; translation: string }> => 
+  getCurrentSubtitle: (): Promise<{ original: string; pinyin?: string; translation: string } | null> => 
     ipcRenderer.invoke('subtitle:get-current'),
 
   // Event Listeners (Main -> Renderer)
