@@ -25,10 +25,14 @@ export const electronAPI = {
     ipcRenderer.invoke(IPC_CHANNELS.WINDOW_COMPLETE_SNIP, rect),
   cancelSnip: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_CANCEL_SNIP),
 
-  // Settings
+  // Settings & Theme
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_GET),
   saveSettings: (settings: Partial<AppSettings>): Promise<AppSettings> => 
     ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_SAVE, settings),
+  setThemeMode: (mode: 'dark' | 'light' | 'system'): Promise<{ theme: string; effectiveTheme: string }> =>
+    ipcRenderer.invoke(IPC_CHANNELS.THEME_CHANGE, mode),
+  getThemeMode: (): Promise<{ theme: string; effectiveTheme: string; subtitleTheme?: string }> =>
+    ipcRenderer.invoke(IPC_CHANNELS.THEME_GET),
 
   // Vocabulary
   getVocabulary: (language?: string): Promise<VocabularyItem[]> => 
@@ -111,6 +115,13 @@ export const electronAPI = {
     ipcRenderer.on('route:navigate', handler);
     return () => {
       ipcRenderer.removeListener('route:navigate', handler);
+    };
+  },
+  onThemeUpdated: (callback: (payload: { theme: 'dark' | 'light' | 'system'; effectiveTheme: 'dark' | 'light'; subtitleTheme?: string }) => void) => {
+    const handler = (_: any, payload: any) => callback(payload);
+    ipcRenderer.on(IPC_CHANNELS.EVENT_THEME_UPDATED, handler);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.EVENT_THEME_UPDATED, handler);
     };
   },
 };

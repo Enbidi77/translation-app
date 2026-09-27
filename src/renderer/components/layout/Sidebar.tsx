@@ -48,7 +48,7 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`h-[calc(100vh-2.75rem)] bg-slate-950/70 border-r border-slate-800 flex flex-col justify-between transition-all duration-200 select-none ${
+      className={`h-[calc(100vh-2.75rem)] bg-surface/90 border-r border-border flex flex-col justify-between transition-all duration-200 select-none ${
         collapsed ? 'w-16' : 'w-56'
       }`}
     >
@@ -59,17 +59,17 @@ export const Sidebar: React.FC = () => {
             to={item.to}
             title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              `flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                 isActive
-                  ? 'bg-primary/15 text-primary border border-primary/20 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  ? 'bg-primary-muted text-primary border border-primary/30 shadow-google-sm font-semibold'
+                  : 'text-foreground-secondary hover:text-foreground hover:bg-surface-hover'
               }`
             }
           >
             <item.icon className="w-4 h-4 shrink-0" />
             {!collapsed && <span className="truncate">{item.label}</span>}
             {!collapsed && item.badge !== undefined && (
-              <span className="ml-auto px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              <span className="ml-auto px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-warning-muted text-warning border border-warning/30">
                 {item.badge}
               </span>
             )}
@@ -78,10 +78,10 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Collapse toggle */}
-      <div className="p-2 border-t border-slate-800/80">
+      <div className="p-2 border-t border-border">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors text-xs"
+          className="w-full flex items-center justify-center p-1.5 rounded-lg text-foreground-secondary hover:text-foreground hover:bg-surface-hover transition-colors text-xs"
           title={dict.sidebar.collapse}
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}

@@ -94,11 +94,11 @@ export const AiTutorPage: React.FC = () => {
       {/* Header & Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Bot className="w-6 h-6 text-primary" />
             <span>{dict.aiTutor.title}</span>
           </h1>
-          <p className="text-slate-400 text-xs mt-0.5">
+          <p className="text-muted-foreground text-xs mt-0.5">
             Luyện đàm thoại phản xạ 1:1, tự động phát hiện lỗi sai đặc trưng của người Việt.
           </p>
         </div>
@@ -107,7 +107,7 @@ export const AiTutorPage: React.FC = () => {
           <select
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            className="bg-slate-900 border border-slate-800 text-slate-200 rounded-xl px-3 py-1.5 focus:outline-none"
+            className="bg-card border border-border text-foreground rounded-2xl px-3 py-1.5 focus:outline-none focus:border-primary shadow-google-sm"
           >
             <option>Trò chơi & Giải trí (Gaming)</option>
             <option>Du lịch & Hỏi đường (Travel)</option>
@@ -120,7 +120,7 @@ export const AiTutorPage: React.FC = () => {
           <select
             value={level}
             onChange={(e) => setLevel(e.target.value)}
-            className="bg-slate-900 border border-slate-800 text-slate-200 rounded-xl px-3 py-1.5 focus:outline-none"
+            className="bg-card border border-border text-foreground rounded-2xl px-3 py-1.5 focus:outline-none focus:border-primary shadow-google-sm"
           >
             <option>Cơ bản (HSK 1-2 / A1-A2)</option>
             <option>Sơ - Trung cấp (HSK 3 / B1)</option>
@@ -130,7 +130,7 @@ export const AiTutorPage: React.FC = () => {
       </div>
 
       {/* Message Chat List */}
-      <div className="flex-1 bg-slate-900/60 border border-slate-800 rounded-2xl p-4 overflow-y-auto space-y-4 shadow-xl">
+      <div className="flex-1 bg-card border border-border rounded-3xl p-5 overflow-y-auto space-y-4 shadow-google-md">
         {messages.map((m) => (
           <div
             key={m.id}
@@ -138,8 +138,8 @@ export const AiTutorPage: React.FC = () => {
           >
             {/* Avatar */}
             <div
-              className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                m.role === 'user' ? 'bg-primary text-white' : 'bg-indigo-600 text-white'
+              className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-google-sm ${
+                m.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-primary-muted text-primary border border-primary/30'
               }`}
             >
               {m.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
@@ -148,27 +148,27 @@ export const AiTutorPage: React.FC = () => {
             {/* Bubble */}
             <div className={`space-y-2 max-w-[80%] ${m.role === 'user' ? 'items-end' : ''}`}>
               <div
-                className={`p-4 rounded-2xl text-sm leading-relaxed space-y-2 shadow-sm ${
+                className={`p-4 rounded-2xl text-sm leading-relaxed space-y-2 shadow-google-sm ${
                   m.role === 'user'
-                    ? 'bg-primary text-white rounded-tr-none'
-                    : 'bg-slate-950/80 border border-slate-800 text-slate-100 rounded-tl-none'
+                    ? 'bg-primary text-primary-foreground rounded-tr-none'
+                    : 'bg-surface border border-border text-foreground rounded-tl-none'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="font-medium text-base">{m.content}</div>
+                  <div className="font-semibold text-base">{m.content}</div>
                   {m.role === 'assistant' && (
                     <AudioPlayer text={m.content} lang="zh" size="sm" />
                   )}
                 </div>
 
                 {m.pinyin && (
-                  <div className="pt-1 border-t border-slate-800/80">
+                  <div className="pt-1.5 border-t border-border">
                     <TonePinyin pinyin={m.pinyin} className="text-xs" />
                   </div>
                 )}
 
                 {m.vietnameseTranslation && (
-                  <div className="text-xs font-medium text-emerald-300/90 pt-0.5">
+                  <div className="text-xs font-medium text-success pt-0.5">
                     {m.vietnameseTranslation}
                   </div>
                 )}
@@ -176,10 +176,10 @@ export const AiTutorPage: React.FC = () => {
 
               {/* AI Feedback on user language errors */}
               {m.feedback && (
-                <div className="p-3 bg-amber-950/30 border border-amber-800/40 rounded-xl text-xs text-amber-200/90 flex items-start gap-2 shadow-sm">
-                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <div className="p-3 bg-warning-muted border border-warning/30 rounded-2xl text-xs text-foreground flex items-start gap-2 shadow-google-sm">
+                  <AlertCircle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold text-amber-300 block mb-0.5">Góp ý ngữ cảnh người Việt:</span>
+                    <span className="font-bold text-warning block mb-0.5">Góp ý ngữ cảnh người Việt:</span>
                     <span>{m.feedback}</span>
                   </div>
                 </div>
@@ -192,7 +192,7 @@ export const AiTutorPage: React.FC = () => {
                     <button
                       key={i}
                       onClick={() => handleSendMessage(reply)}
-                      className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 transition-colors"
+                      className="px-3 py-1 rounded-xl bg-surface-hover hover:bg-surface-active border border-border text-xs text-foreground transition-colors shadow-google-sm"
                     >
                       {reply}
                     </button>
@@ -205,10 +205,10 @@ export const AiTutorPage: React.FC = () => {
 
         {isTyping && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-primary-muted text-primary border border-primary/30 flex items-center justify-center">
               <Bot className="w-4 h-4 animate-pulse" />
             </div>
-            <div className="px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-400 flex items-center gap-1.5">
+            <div className="px-4 py-3 rounded-2xl bg-surface border border-border text-xs text-muted-foreground flex items-center gap-1.5 shadow-google-sm">
               <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" />
               <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:0.2s]" />
               <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:0.4s]" />
@@ -219,7 +219,7 @@ export const AiTutorPage: React.FC = () => {
       </div>
 
       {/* Input Box Footer */}
-      <div className="shrink-0 flex items-center gap-2 bg-slate-900 border border-slate-800 p-2 rounded-2xl shadow-xl">
+      <div className="shrink-0 flex items-center gap-2 bg-card border border-border p-2 rounded-2xl shadow-google-md">
         <input
           type="text"
           value={inputMessage}
@@ -228,12 +228,12 @@ export const AiTutorPage: React.FC = () => {
             if (e.key === 'Enter') handleSendMessage();
           }}
           placeholder={dict.aiTutor.inputPlaceholder}
-          className="flex-1 bg-transparent px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none"
+          className="flex-1 bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
         />
         <button
           onClick={() => handleSendMessage()}
           disabled={!inputMessage.trim() || isTyping}
-          className="px-4 py-2 rounded-xl bg-primary hover:bg-blue-600 text-white font-medium text-xs shadow disabled:opacity-50 transition-all flex items-center gap-1.5"
+          className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs shadow-google-sm disabled:opacity-50 transition-all flex items-center gap-1.5"
         >
           <Send className="w-3.5 h-3.5" />
           <span>{dict.aiTutor.sendBtn}</span>

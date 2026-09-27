@@ -59,22 +59,22 @@ export const FlashcardsPage: React.FC = () => {
     <div className="p-6 space-y-6 max-w-4xl mx-auto overflow-y-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">{dict.flashcards.title}</h1>
-          <p className="text-slate-400 text-xs mt-0.5">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">{dict.flashcards.title}</h1>
+          <p className="text-muted-foreground text-xs mt-0.5">
             Thuật toán SuperMemo SM-2 tối ưu hóa khoảng thời gian ôn tập để ghi nhớ lâu dài.
           </p>
         </div>
 
         {/* Stats Pill */}
-        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
+        <div className="flex items-center gap-2 bg-card border border-border px-3.5 py-1.5 rounded-2xl text-xs shadow-google-sm">
           <Layers className="w-4 h-4 text-primary" />
-          <span className="text-slate-300">Cần ôn tập:</span>
-          <span className="font-bold text-amber-400">{dueCards.length - currentIndex} thẻ</span>
+          <span className="text-muted-foreground">Cần ôn tập:</span>
+          <span className="font-bold text-warning">{dueCards.length - currentIndex} thẻ</span>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full bg-slate-900 border border-slate-800 h-2.5 rounded-full overflow-hidden">
+      <div className="w-full bg-surface-hover border border-border h-2.5 rounded-full overflow-hidden">
         <div
           className="bg-primary h-full transition-all duration-300 rounded-full"
           style={{
@@ -88,21 +88,21 @@ export const FlashcardsPage: React.FC = () => {
         <div className="space-y-6">
           <div
             onClick={flipCard}
-            className={`min-h-[340px] rounded-3xl p-8 flex flex-col justify-between items-center text-center cursor-pointer transition-all duration-300 border shadow-2xl relative select-none ${
+            className={`min-h-[340px] rounded-3xl p-8 flex flex-col justify-between items-center text-center cursor-pointer transition-all duration-300 border shadow-google-md relative select-none ${
               isFlipped
-                ? 'bg-slate-900/95 border-primary/50 shadow-primary/10'
-                : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
+                ? 'bg-card border-primary/50 shadow-google-lg'
+                : 'bg-card border-border hover:border-primary/40 hover:bg-card-hover'
             }`}
           >
             {/* Header info */}
-            <div className="w-full flex items-center justify-between text-xs text-slate-500">
+            <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
               <span className="font-mono">Thẻ {currentIndex + 1} / {dueCards.length}</span>
               <div className="flex items-center gap-1.5">
-                <span className="capitalize px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[10px]">
+                <span className="capitalize px-2 py-0.5 rounded-full bg-surface-hover text-muted-foreground text-[10px] font-semibold border border-border">
                   {currentCard.state}
                 </span>
                 {currentCard.vocabulary?.hskLevel && (
-                  <span className="px-2 py-0.5 rounded-full bg-red-950/60 text-red-300 border border-red-800/40 text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-destructive-muted text-destructive border border-destructive/30 text-[10px] font-bold">
                     HSK {currentCard.vocabulary.hskLevel}
                   </span>
                 )}
@@ -113,7 +113,7 @@ export const FlashcardsPage: React.FC = () => {
             <div className="my-auto space-y-4 max-w-lg">
               {/* Target Word */}
               <div className="flex items-center justify-center gap-3">
-                <h2 className="text-5xl font-extrabold text-white tracking-wide">
+                <h2 className="text-5xl font-extrabold text-foreground tracking-wide font-sans">
                   {currentCard.front}
                 </h2>
                 <AudioPlayer 
@@ -124,11 +124,11 @@ export const FlashcardsPage: React.FC = () => {
               </div>
 
               {!isFlipped ? (
-                <p className="text-xs text-slate-500 animate-pulse mt-4">
+                <p className="text-xs text-muted-foreground animate-pulse mt-4">
                   {dict.flashcards.revealAnswer}
                 </p>
               ) : (
-                <div className="space-y-4 pt-4 border-t border-slate-800 animate-in fade-in duration-200">
+                <div className="space-y-4 pt-4 border-t border-border animate-in fade-in duration-200">
                   {/* Pinyin */}
                   {currentCard.pinyin && (
                     <div className="text-base font-medium">
@@ -137,19 +137,19 @@ export const FlashcardsPage: React.FC = () => {
                   )}
 
                   {/* Vietnamese Meaning */}
-                  <div className="text-2xl font-bold text-emerald-300">
+                  <div className="text-2xl font-bold text-success">
                     {currentCard.back}
                   </div>
 
                   {/* Notes / Part of speech */}
                   {currentCard.vocabulary?.partOfSpeech && (
-                    <div className="text-xs text-slate-400 italic">
+                    <div className="text-xs text-muted-foreground italic">
                       ({currentCard.vocabulary.partOfSpeech})
                     </div>
                   )}
 
                   {currentCard.note && (
-                    <p className="text-xs text-slate-300 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
+                    <p className="text-xs text-foreground-secondary bg-surface-hover p-3 rounded-2xl border border-border">
                       {currentCard.note}
                     </p>
                   )}
@@ -158,7 +158,7 @@ export const FlashcardsPage: React.FC = () => {
             </div>
 
             {/* Bottom prompt */}
-            <div className="w-full flex items-center justify-center text-xs text-slate-500">
+            <div className="w-full flex items-center justify-center text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <RotateCw className="w-3.5 h-3.5" />
                 <span>Nhấn phím Cách (Space) để lật mặt sau</span>
@@ -171,41 +171,41 @@ export const FlashcardsPage: React.FC = () => {
             <div className="grid grid-cols-4 gap-3 animate-in fade-in duration-150">
               <button
                 onClick={() => handleRating(1)}
-                className="p-3.5 rounded-2xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 font-bold text-xs flex flex-col items-center gap-1 transition-all group"
+                className="p-3.5 rounded-2xl bg-destructive-muted hover:bg-destructive/20 border border-destructive/40 text-destructive font-bold text-xs flex flex-col items-center gap-1 transition-all shadow-google-sm"
               >
                 <span className="text-sm">Quên (1)</span>
-                <span className="text-[10px] text-rose-400/80 font-normal">Học lại ngày mai</span>
+                <span className="text-[10px] opacity-80 font-normal">Học lại ngày mai</span>
               </button>
 
               <button
                 onClick={() => handleRating(2)}
-                className="p-3.5 rounded-2xl bg-amber-950/40 hover:bg-amber-900/60 border border-amber-800/60 text-amber-300 font-bold text-xs flex flex-col items-center gap-1 transition-all group"
+                className="p-3.5 rounded-2xl bg-warning-muted hover:bg-warning/20 border border-warning/40 text-warning font-bold text-xs flex flex-col items-center gap-1 transition-all shadow-google-sm"
               >
                 <span className="text-sm">Khó (2)</span>
-                <span className="text-[10px] text-amber-400/80 font-normal">Ôn sớm</span>
+                <span className="text-[10px] opacity-80 font-normal">Ôn sớm</span>
               </button>
 
               <button
                 onClick={() => handleRating(3)}
-                className="p-3.5 rounded-2xl bg-blue-950/40 hover:bg-blue-900/60 border border-blue-800/60 text-blue-300 font-bold text-xs flex flex-col items-center gap-1 transition-all group"
+                className="p-3.5 rounded-2xl bg-primary-muted hover:bg-primary/20 border border-primary/40 text-primary font-bold text-xs flex flex-col items-center gap-1 transition-all shadow-google-sm"
               >
                 <span className="text-sm">Tốt (3)</span>
-                <span className="text-[10px] text-blue-400/80 font-normal">Đúng chuẩn SM-2</span>
+                <span className="text-[10px] opacity-80 font-normal">Đúng chuẩn SM-2</span>
               </button>
 
               <button
                 onClick={() => handleRating(4)}
-                className="p-3.5 rounded-2xl bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-800/60 text-emerald-300 font-bold text-xs flex flex-col items-center gap-1 transition-all group"
+                className="p-3.5 rounded-2xl bg-success-muted hover:bg-success/20 border border-success/40 text-success font-bold text-xs flex flex-col items-center gap-1 transition-all shadow-google-sm"
               >
                 <span className="text-sm">Dễ (4)</span>
-                <span className="text-[10px] text-emerald-400/80 font-normal">Kéo dài khoảng cách</span>
+                <span className="text-[10px] opacity-80 font-normal">Kéo dài khoảng cách</span>
               </button>
             </div>
           ) : (
             <div className="flex justify-center">
               <button
                 onClick={flipCard}
-                className="px-6 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs border border-slate-700 shadow-xl transition-all"
+                className="px-6 py-3 rounded-2xl bg-surface hover:bg-surface-hover text-foreground font-semibold text-xs border border-border shadow-google-md transition-all"
               >
                 {dict.flashcards.revealAnswer}
               </button>
@@ -214,18 +214,18 @@ export const FlashcardsPage: React.FC = () => {
         </div>
       ) : (
         /* Finished State */
-        <div className="p-12 bg-slate-900/80 border border-slate-800 rounded-3xl text-center space-y-4 shadow-2xl">
-          <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+        <div className="p-12 bg-card border border-border rounded-3xl text-center space-y-4 shadow-google-md">
+          <div className="w-16 h-16 rounded-full bg-success-muted border border-success/30 text-success flex items-center justify-center mx-auto shadow-google-sm">
             <CheckCircle2 className="w-8 h-8" />
           </div>
-          <h3 className="text-xl font-bold text-white">{dict.flashcards.noDueCards}</h3>
-          <p className="text-slate-400 text-xs max-w-md mx-auto leading-relaxed">
+          <h3 className="text-xl font-bold text-foreground">{dict.flashcards.noDueCards}</h3>
+          <p className="text-muted-foreground text-xs max-w-md mx-auto leading-relaxed">
             Bạn đã hoàn thành tất cả thẻ cần ôn tập cho hôm nay. Não bộ của bạn đang củng cố trí nhớ dài hạn. Hãy quay lại vào ngày mai!
           </p>
           <div className="pt-2">
             <button
               onClick={fetchDueCards}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors"
+              className="px-4 py-2 rounded-2xl bg-surface hover:bg-surface-hover text-foreground text-xs font-semibold border border-border shadow-google-sm transition-colors"
             >
               Làm mới danh sách
             </button>

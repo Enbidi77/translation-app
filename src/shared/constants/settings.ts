@@ -42,5 +42,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
     textColor: '#ffffff',
     backgroundColor: '#0f172a',
     maxLines: 2,
+    subtitleTheme: 'follow_app',
   },
 };

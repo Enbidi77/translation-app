@@ -46,12 +46,12 @@ export const WordBreakdownModal: React.FC = () => {
   const isZh = /[\u4e00-\u9fa5]/.test(selectedWord.word);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-        <div className="flex items-start justify-between border-b border-slate-800 pb-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-google-lg p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="flex items-start justify-between border-b border-border pb-3">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-3xl font-bold text-white tracking-wide">{selectedWord.word}</h2>
+              <h2 className="text-3xl font-bold text-foreground tracking-wide">{selectedWord.word}</h2>
               <AudioPlayer text={selectedWord.word} lang={isZh ? 'zh' : 'en'} size="md" />
               <AudioPlayer text={selectedWord.word} lang={isZh ? 'zh' : 'en'} slow size="sm" />
             </div>
@@ -63,7 +63,7 @@ export const WordBreakdownModal: React.FC = () => {
           </div>
           <button
             onClick={closeWordModal}
-            className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-surface-hover transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -71,53 +71,53 @@ export const WordBreakdownModal: React.FC = () => {
 
         <div className="space-y-3 text-sm">
           <div>
-            <span className="text-xs uppercase font-semibold text-slate-500 tracking-wider">Ý nghĩa tiếng Việt:</span>
-            <p className="text-emerald-400 font-medium text-base mt-0.5">
+            <span className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">Ý nghĩa tiếng Việt:</span>
+            <p className="text-success font-semibold text-base mt-0.5">
               {selectedWord.translation || 'Chưa có định nghĩa sẵn'}
             </p>
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs">
             {selectedWord.partOfSpeech && (
-              <span className="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
+              <span className="px-2.5 py-1 rounded-lg bg-surface-hover text-foreground-secondary border border-border font-medium">
                 {selectedWord.partOfSpeech}
               </span>
             )}
             {selectedWord.hskLevel && (
-              <span className="px-2.5 py-1 rounded-md bg-blue-900/60 text-blue-300 border border-blue-700/50">
+              <span className="px-2.5 py-1 rounded-lg bg-primary-muted text-primary border border-primary/30 font-semibold">
                 HSK {selectedWord.hskLevel}
               </span>
             )}
           </div>
 
           {grammarExplanation && (
-            <div className="p-3 bg-slate-800/80 border border-slate-700 rounded-lg text-xs leading-relaxed text-slate-200 max-h-48 overflow-y-auto whitespace-pre-line">
+            <div className="p-3 bg-surface-hover/70 border border-border rounded-xl text-xs leading-relaxed text-foreground max-h-48 overflow-y-auto whitespace-pre-line">
               {grammarExplanation}
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
           <button
             onClick={handleExplain}
             disabled={isExplaining}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center gap-1.5 transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-surface-hover hover:bg-surface-active text-foreground-secondary hover:text-foreground text-xs font-medium border border-border flex items-center gap-1.5 transition-colors"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            {isExplaining ? 'Đang phân tích...' : 'Giải thích ngữ pháp'}
+            <Sparkles className="w-3.5 h-3.5 text-warning" />
+            <span>{isExplaining ? 'Đang phân tích...' : 'Giải thích ngữ pháp AI'}</span>
           </button>
 
           <button
             onClick={handleSave}
             disabled={isSaved}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors shadow-google-sm ${
               isSaved
-                ? 'bg-emerald-600/30 text-emerald-400 border border-emerald-500/50'
-                : 'bg-primary hover:bg-blue-600 text-white shadow'
+                ? 'bg-success-muted text-success border border-success/30'
+                : 'bg-primary hover:bg-primary-hover text-primary-foreground'
             }`}
           >
             {isSaved ? <Check className="w-3.5 h-3.5" /> : <BookmarkPlus className="w-3.5 h-3.5" />}
-            {isSaved ? 'Đã lưu' : 'Lưu từ vựng'}
+            <span>{isSaved ? 'Đã lưu sổ từ' : 'Lưu từ vựng'}</span>
           </button>
         </div>
       </div>

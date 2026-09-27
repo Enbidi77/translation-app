@@ -1,13 +1,36 @@
 <!DOCTYPE html>
-<html lang="vi" class="dark">
+<html lang="vi" class="dark disable-transitions" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; media-src 'self' data: blob: https: http:; img-src 'self' data: blob: https: http:;" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; media-src 'self' data: blob: https: http:; img-src 'self' data: blob: https: http:; font-src 'self' https: data:;" />
     <title>PolyglotDesktop - Trợ Lý Học Tiếng Trung & Tiếng Anh</title>
+    <!-- Prevent theme flash before first paint -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('polyglot_theme_mode') || 'dark';
+          var isDark = saved === 'dark' || (saved === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var html = document.documentElement;
+          if (isDark) {
+            html.classList.add('dark');
+            html.setAttribute('data-theme', 'dark');
+          } else {
+            html.classList.remove('dark');
+            html.setAttribute('data-theme', 'light');
+          }
+          // Remove transition block after initial load
+          window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+              html.classList.remove('disable-transitions');
+            }, 60);
+          });
+        } catch (e) {}
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   </head>
   <body class="antialiased select-none font-sans overflow-hidden bg-transparent">
     <div id="root"></div>

@@ -30,10 +30,11 @@ const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toastMessage, toastType, showToast } = useAppStore();
-  const { fetchSettings } = useSettingsStore();
+  const { fetchSettings, initTheme } = useSettingsStore();
 
   useEffect(() => {
     fetchSettings();
+    const unsubTheme = initTheme();
 
     // Listen for navigation events from shortcuts or tray
     const unsubNavigate = window.electronAPI?.onNavigate((route) => {
@@ -46,6 +47,7 @@ const AppLayout: React.FC = () => {
     });
 
     return () => {
+      unsubTheme?.();
       unsubNavigate?.();
       unsubClipboard?.();
     };
@@ -72,7 +74,7 @@ const AppLayout: React.FC = () => {
       {/* Main App Layout */}
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto bg-slate-950/40">
+        <main className="flex-1 overflow-y-auto bg-background text-foreground">
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/translate" element={<TranslatePage />} />
@@ -98,14 +100,14 @@ const AppLayout: React.FC = () => {
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-5 duration-200">
           <div
-            className={`px-4 py-3 rounded-2xl shadow-2xl text-xs font-medium border flex items-center gap-2.5 backdrop-blur-md ${
+            className={`px-4 py-3 rounded-2xl shadow-google-lg text-xs font-medium border flex items-center gap-2.5 backdrop-blur-md ${
               toastType === 'success'
-                ? 'bg-emerald-950/90 border-emerald-700/60 text-emerald-200'
+                ? 'bg-success/15 border-success/30 text-success'
                 : toastType === 'error'
-                ? 'bg-rose-950/90 border-rose-700/60 text-rose-200'
+                ? 'bg-destructive/15 border-destructive/30 text-destructive'
                 : toastType === 'warning'
-                ? 'bg-amber-950/90 border-amber-700/60 text-amber-200'
-                : 'bg-slate-900/90 border-slate-700/60 text-slate-200'
+                ? 'bg-warning/15 border-warning/30 text-warning'
+                : 'bg-surface/95 border-border text-foreground shadow-google-md'
             }`}
           >
             <span>{toastMessage}</span>

@@ -31,7 +31,7 @@ export class MainWindowManager {
       minWidth: 1024,
       minHeight: 680,
       title: 'PolyglotDesktop - Trợ Lý Học Tiếng Trung & Tiếng Anh',
-      backgroundColor: '#090d16',
+      backgroundColor: '#202124',
       frame: false,
       titleBarStyle: 'hidden',
       show: false,

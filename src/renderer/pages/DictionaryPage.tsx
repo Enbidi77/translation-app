@@ -47,15 +47,15 @@ export const DictionaryPage: React.FC = () => {
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto overflow-y-auto">
       <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">{dict.sidebar.dictionary}</h1>
-        <p className="text-slate-400 text-xs mt-0.5">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">{dict.sidebar.dictionary}</h1>
+        <p className="text-muted-foreground text-xs mt-0.5">
           Tra cứu toàn diện chữ Hán, Pinyin, nghĩa tiếng Việt và tiếng Anh kèm ví dụ mẫu ngữ cảnh.
         </p>
       </div>
 
       {/* Search Input Bar */}
       <div className="relative">
-        <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input
           type="text"
           value={query}
@@ -67,7 +67,7 @@ export const DictionaryPage: React.FC = () => {
             if (e.key === 'Enter') handleSearch();
           }}
           placeholder="Tìm kiếm: 适合, shìhé, phù hợp, beginner, character..."
-          className="w-full bg-slate-900/90 border border-slate-800 rounded-2xl pl-12 pr-4 py-3.5 text-base text-white placeholder-slate-500 focus:outline-none focus:border-primary shadow-xl"
+          className="w-full bg-card border border-border rounded-2xl pl-12 pr-4 py-3.5 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-google-md"
         />
       </div>
 
@@ -77,21 +77,21 @@ export const DictionaryPage: React.FC = () => {
           results.map((item) => (
             <div
               key={item.id}
-              className="p-5 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-4 shadow-xl hover:border-slate-700 transition-all"
+              className="p-5 bg-card border border-border rounded-3xl space-y-4 shadow-google-md hover:border-primary/40 transition-all"
             >
-              <div className="flex items-start justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-start justify-between pb-3 border-b border-border">
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
-                    <span className="text-3xl font-bold text-white tracking-wide">{item.word}</span>
+                    <span className="text-3xl font-bold text-foreground tracking-wide">{item.word}</span>
                     <AudioPlayer text={item.word} lang={item.language as any} size="md" />
                     <AudioPlayer text={item.word} lang={item.language as any} slow size="sm" />
                     {item.hskLevel && (
-                      <span className="px-2 py-0.5 rounded-md bg-red-950/60 text-red-300 border border-red-800/50 text-xs font-semibold">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-destructive-muted text-destructive border border-destructive/30 text-xs font-bold">
                         HSK {item.hskLevel}
                       </span>
                     )}
                     {item.cefrLevel && (
-                      <span className="px-2 py-0.5 rounded-md bg-blue-950/60 text-blue-300 border border-blue-800/50 text-xs font-semibold">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-primary-muted text-primary border border-primary/30 text-xs font-bold">
                         CEFR {item.cefrLevel}
                       </span>
                     )}
@@ -103,13 +103,13 @@ export const DictionaryPage: React.FC = () => {
                     </div>
                   )}
                   {item.ipa && (
-                    <span className="text-xs font-mono text-slate-400">{item.ipa}</span>
+                    <span className="text-xs font-mono text-muted-foreground">{item.ipa}</span>
                   )}
                 </div>
 
                 <button
                   onClick={() => handleSave(item)}
-                  className="px-3 py-1.5 rounded-xl bg-primary hover:bg-blue-600 text-white text-xs font-medium flex items-center gap-1.5 shadow transition-colors"
+                  className="px-3.5 py-1.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-semibold flex items-center gap-1.5 shadow-google-sm transition-colors"
                 >
                   <BookmarkPlus className="w-4 h-4" />
                   <span>{dict.translate.saveVocab}</span>
@@ -119,15 +119,15 @@ export const DictionaryPage: React.FC = () => {
               {/* Definitions & POS */}
               <div className="space-y-2 text-sm">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Định nghĩa:</span>
-                  <span className="text-emerald-400 font-semibold text-base">{item.translation}</span>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Định nghĩa:</span>
+                  <span className="text-success font-bold text-base">{item.translation}</span>
                   {item.partOfSpeech && (
-                    <span className="text-xs text-slate-400 italic">({item.partOfSpeech})</span>
+                    <span className="text-xs text-muted-foreground italic">({item.partOfSpeech})</span>
                   )}
                 </div>
 
                 {item.definition && (
-                  <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+                  <p className="text-xs text-foreground-secondary leading-relaxed bg-surface-hover p-3 rounded-xl border border-border">
                     {item.definition}
                   </p>
                 )}
@@ -135,19 +135,19 @@ export const DictionaryPage: React.FC = () => {
 
               {/* Examples */}
               {item.examples && item.examples.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-slate-800/80">
-                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Ví dụ minh họa:
                   </span>
                   <div className="space-y-2">
                     {item.examples.map((ex, i) => (
-                      <div key={i} className="p-3 bg-slate-950/80 rounded-xl border border-slate-800/80 space-y-1">
+                      <div key={i} className="p-3 bg-surface rounded-2xl border border-border space-y-1 shadow-google-sm">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-white">{ex.sentence}</span>
+                          <span className="text-sm font-semibold text-foreground">{ex.sentence}</span>
                           <AudioPlayer text={ex.sentence} lang={item.language as any} size="sm" />
                         </div>
                         {ex.pinyin && <TonePinyin pinyin={ex.pinyin} className="text-xs" />}
-                        <div className="text-xs text-emerald-300 font-medium">{ex.translation}</div>
+                        <div className="text-xs text-success font-medium">{ex.translation}</div>
                       </div>
                     ))}
                   </div>
@@ -156,7 +156,7 @@ export const DictionaryPage: React.FC = () => {
             </div>
           ))
         ) : (
-          <div className="p-12 text-center text-slate-500 bg-slate-900/40 rounded-2xl border border-slate-800">
+          <div className="p-12 text-center text-muted-foreground bg-card rounded-3xl border border-border shadow-google-sm">
             {isSearching ? 'Đang tra cứu từ điển...' : 'Không tìm thấy kết quả phù hợp. Hãy thử tìm từ khác.'}
           </div>
         )}

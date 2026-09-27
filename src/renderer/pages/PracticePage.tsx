@@ -107,18 +107,20 @@ export const PracticePage: React.FC = () => {
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto overflow-y-auto">
       <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">{dict.practice.title}</h1>
-        <p className="text-slate-400 text-xs mt-0.5">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">{dict.practice.title}</h1>
+        <p className="text-muted-foreground text-xs mt-0.5">
           Luyện nghe chép chính tả và luyện nói sửa phát âm phản hồi tức thì từ AI.
         </p>
       </div>
 
       {/* Mode Tabs */}
-      <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1 rounded-2xl w-fit text-xs font-semibold">
+      <div className="flex items-center gap-2 bg-card border border-border p-1 rounded-2xl w-fit text-xs font-semibold shadow-google-sm">
         <button
           onClick={() => setActiveTab('listen')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
-            activeTab === 'listen' ? 'bg-primary text-white shadow' : 'text-slate-400 hover:text-white'
+            activeTab === 'listen' 
+              ? 'bg-primary text-primary-foreground shadow-google-sm font-semibold' 
+              : 'text-foreground-secondary hover:text-foreground hover:bg-surface-hover'
           }`}
         >
           <Headphones className="w-4 h-4" />
@@ -127,7 +129,9 @@ export const PracticePage: React.FC = () => {
         <button
           onClick={() => setActiveTab('speak')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
-            activeTab === 'speak' ? 'bg-primary text-white shadow' : 'text-slate-400 hover:text-white'
+            activeTab === 'speak' 
+              ? 'bg-primary text-primary-foreground shadow-google-sm font-semibold' 
+              : 'text-foreground-secondary hover:text-foreground hover:bg-surface-hover'
           }`}
         >
           <Mic className="w-4 h-4" />
@@ -137,23 +141,23 @@ export const PracticePage: React.FC = () => {
 
       {/* Tab 1: Listening Dictation */}
       {activeTab === 'listen' && (
-        <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-3xl space-y-6 shadow-xl">
-          <div className="flex flex-col items-center justify-center p-8 bg-slate-950/60 rounded-2xl border border-slate-800 space-y-4">
+        <div className="p-6 bg-card border border-border rounded-3xl space-y-6 shadow-google-md">
+          <div className="flex flex-col items-center justify-center p-8 bg-surface rounded-2xl border border-border space-y-4 shadow-google-sm">
             <div className="flex items-center gap-3">
               <AudioPlayer text={listenSentence.chinese} lang="zh" size="lg" />
               <AudioPlayer text={listenSentence.chinese} lang="zh" slow size="md" />
             </div>
-            <p className="text-xs text-slate-400">Bấm vào biểu tượng loa để nghe câu phát âm tốc độ thường hoặc chậm</p>
+            <p className="text-xs text-muted-foreground">Bấm vào biểu tượng loa để nghe câu phát âm tốc độ thường hoặc chậm</p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-slate-300">Gõ lại những gì bạn nghe được (Hán tự hoặc Pinyin):</label>
+            <label className="text-xs font-semibold text-foreground">Gõ lại những gì bạn nghe được (Hán tự hoặc Pinyin):</label>
             <input
               type="text"
               value={userTyped}
               onChange={(e) => setUserTyped(e.target.value)}
               placeholder="Gõ văn bản tiếng Trung tại đây..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-base text-white focus:outline-none focus:border-primary"
+              className="w-full bg-surface border border-border rounded-xl p-3 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-google-sm"
             />
           </div>
 
@@ -164,13 +168,13 @@ export const PracticePage: React.FC = () => {
                 setListenSubmitted(false);
                 setListenScore(null);
               }}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium"
+              className="px-4 py-2 rounded-xl bg-surface hover:bg-surface-hover text-foreground-secondary hover:text-foreground border border-border text-xs font-medium transition-colors"
             >
               Làm lại
             </button>
             <button
               onClick={handleCheckListening}
-              className="px-5 py-2 rounded-xl bg-primary hover:bg-blue-600 text-white font-medium text-xs shadow"
+              className="px-5 py-2 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs shadow-google-sm transition-all"
             >
               {dict.practice.checkAnswer}
             </button>
@@ -178,14 +182,14 @@ export const PracticePage: React.FC = () => {
 
           {/* Feedback & Result */}
           {listenSubmitted && (
-            <div className="p-5 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-3 animate-in fade-in duration-200">
+            <div className="p-5 bg-surface rounded-2xl border border-border space-y-3 shadow-google-sm animate-in fade-in duration-200">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Đáp án chính xác:</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Đáp án chính xác:</span>
                 <span className="text-sm font-bold text-primary">Điểm: {listenScore}%</span>
               </div>
-              <div className="text-xl font-bold text-white">{listenSentence.chinese}</div>
+              <div className="text-xl font-bold text-foreground">{listenSentence.chinese}</div>
               <TonePinyin pinyin={listenSentence.pinyin} className="text-xs" />
-              <div className="text-xs font-medium text-emerald-300">{listenSentence.meaning}</div>
+              <div className="text-xs font-medium text-success">{listenSentence.meaning}</div>
             </div>
           )}
         </div>
@@ -193,19 +197,19 @@ export const PracticePage: React.FC = () => {
 
       {/* Tab 2: Speaking & Pronunciation Practice */}
       {activeTab === 'speak' && (
-        <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-3xl space-y-6 shadow-xl">
+        <div className="p-6 bg-card border border-border rounded-3xl space-y-6 shadow-google-md">
           {/* Target Sentence Card */}
-          <div className="p-6 bg-slate-950/60 rounded-2xl border border-slate-800 space-y-2">
+          <div className="p-6 bg-surface rounded-2xl border border-border space-y-2 shadow-google-sm">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Câu luyện nói mẫu:</span>
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Câu luyện nói mẫu:</span>
               <div className="flex items-center gap-1">
                 <AudioPlayer text={speakSentence.chinese} lang="zh" size="sm" />
                 <AudioPlayer text={speakSentence.chinese} lang="zh" slow size="sm" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-white">{speakSentence.chinese}</div>
+            <div className="text-2xl font-bold text-foreground">{speakSentence.chinese}</div>
             <TonePinyin pinyin={speakSentence.pinyin} className="text-sm" />
-            <div className="text-xs font-medium text-emerald-300">{speakSentence.meaning}</div>
+            <div className="text-xs font-medium text-success">{speakSentence.meaning}</div>
           </div>
 
           {/* Record Button */}
@@ -213,37 +217,37 @@ export const PracticePage: React.FC = () => {
             <button
               onClick={handleStartSpeaking}
               disabled={isRecording || isEvaluating}
-              className={`w-20 h-20 rounded-full flex items-center justify-center shadow-2xl transition-all ${
+              className={`w-20 h-20 rounded-full flex items-center justify-center shadow-google-lg transition-all ${
                 isRecording
-                  ? 'bg-rose-600 text-white animate-pulse'
-                  : 'bg-primary hover:bg-blue-600 text-white'
+                  ? 'bg-destructive text-destructive-foreground animate-pulse'
+                  : 'bg-primary hover:bg-primary-hover text-primary-foreground'
               }`}
             >
               {isRecording ? <MicOff className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
             </button>
-            <span className="text-xs text-slate-400 font-medium">
+            <span className="text-xs text-muted-foreground font-medium">
               {isRecording ? 'Đang lắng nghe phát âm của bạn...' : isEvaluating ? dict.practice.evaluating : dict.practice.startSpeaking}
             </span>
           </div>
 
           {/* User Spoken Result & Evaluation */}
           {spokenTranscript && (
-            <div className="p-5 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-3 animate-in fade-in duration-200">
-              <div className="text-xs font-semibold text-slate-400">Bạn đã nói:</div>
-              <div className="text-lg font-bold text-white leading-snug">"{spokenTranscript}"</div>
+            <div className="p-5 bg-surface rounded-2xl border border-border space-y-3 shadow-google-sm animate-in fade-in duration-200">
+              <div className="text-xs font-semibold text-muted-foreground">Bạn đã nói:</div>
+              <div className="text-lg font-bold text-foreground leading-snug">"{spokenTranscript}"</div>
 
               {speechEvaluation && (
-                <div className="pt-3 border-t border-slate-800/80 space-y-3">
+                <div className="pt-3 border-t border-border space-y-3">
                   <div className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-amber-400" />
-                    <span className="text-sm font-bold text-white">Điểm phát âm: {speechEvaluation.score} / 100</span>
+                    <Award className="w-5 h-5 text-warning" />
+                    <span className="text-sm font-bold text-foreground">Điểm phát âm: {speechEvaluation.score} / 100</span>
                   </div>
-                  <p className="text-xs text-slate-300 bg-slate-900 p-3 rounded-xl border border-slate-800 leading-relaxed">
+                  <p className="text-xs text-foreground-secondary bg-surface-hover p-3 rounded-xl border border-border leading-relaxed">
                     {speechEvaluation.feedback}
                   </p>
                   {speechEvaluation.naturalAlternative && (
-                    <div className="text-xs text-slate-400">
-                      Cách nói tự nhiên hơn: <span className="text-emerald-300 font-medium">{speechEvaluation.naturalAlternative}</span>
+                    <div className="text-xs text-muted-foreground">
+                      Cách nói tự nhiên hơn: <span className="text-success font-medium">{speechEvaluation.naturalAlternative}</span>
                     </div>
                   )}
                 </div>

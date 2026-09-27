@@ -54,7 +54,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       onClick={speak}
       disabled={isPlaying}
       title={`Phát âm ${lang === 'zh' ? 'tiếng Trung' : lang === 'en' ? 'tiếng Anh' : 'tiếng Việt'}${slow ? ' (chậm)' : ''}`}
-      className={`inline-flex items-center justify-center p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-primary transition-colors focus:outline-none ${className}`}
+      className={`inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary transition-colors focus:outline-none ${className}`}
     >
       {isPlaying ? (
         <Loader2 className={`${iconSizes[size]} animate-spin text-primary`} />

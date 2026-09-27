@@ -3,9 +3,7 @@ import {
   X, 
   Pin, 
   PinOff, 
-  Eye, 
   BookmarkPlus, 
-  Sparkles, 
   Move, 
   Check, 
   Sliders 
@@ -15,6 +13,7 @@ import { TonePinyin } from '../components/common/TonePinyin';
 import { AudioPlayer } from '../components/common/AudioPlayer';
 import { WordBreakdownModal } from '../components/common/WordBreakdownModal';
 import { useAppStore } from '../stores/useAppStore';
+import { useSettingsStore } from '../stores/useSettingsStore';
 
 export const FloatingOverlay: React.FC = () => {
   const [data, setData] = useState<TranslationResponse | null>(null);
@@ -23,24 +22,23 @@ export const FloatingOverlay: React.FC = () => {
   const [opacity, setOpacity] = useState(0.95);
   const [savedWords, setSavedWords] = useState<Record<string, boolean>>({});
   const { openWordModal } = useAppStore();
+  const { initTheme } = useSettingsStore();
 
   useEffect(() => {
+    const unsubTheme = initTheme();
     const unsubscribe = window.electronAPI?.onOverlayData((newData) => {
       setData(newData);
     });
-    return () => unsubscribe?.();
+    return () => {
+      unsubTheme?.();
+      unsubscribe?.();
+    };
   }, []);
 
   const handleTogglePin = () => {
     const next = !alwaysOnTop;
     setAlwaysOnTop(next);
     window.electronAPI?.setAlwaysOnTop(next);
-  };
-
-  const handleToggleClickThrough = () => {
-    const next = !clickThrough;
-    setClickThrough(next);
-    window.electronAPI?.setClickThrough(next);
   };
 
   const handleOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +68,7 @@ export const FloatingOverlay: React.FC = () => {
 
   if (!data) {
     return (
-      <div className="h-screen w-screen bg-slate-900/90 text-slate-300 p-4 flex items-center justify-center text-xs">
+      <div className="h-screen w-screen bg-surface/95 text-foreground-secondary p-4 flex items-center justify-center text-xs backdrop-blur-md">
         Đang chờ kết quả dịch...
       </div>
     );
@@ -80,23 +78,23 @@ export const FloatingOverlay: React.FC = () => {
 
   return (
     <div
-      className="h-screen w-screen flex flex-col bg-slate-950/95 text-slate-100 rounded-xl border border-slate-700/80 shadow-2xl overflow-hidden backdrop-blur-md select-none"
+      className="h-screen w-screen flex flex-col bg-surface/95 text-foreground rounded-2xl border border-border shadow-google-lg overflow-hidden backdrop-blur-md select-none transition-colors"
       style={{ opacity }}
     >
       {/* Draggable Header */}
-      <div className="h-9 px-3 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between text-xs titlebar-drag">
-        <div className="flex items-center gap-1.5 text-slate-300 font-semibold">
+      <div className="h-9 px-3 bg-surface border-b border-border flex items-center justify-between text-xs titlebar-drag">
+        <div className="flex items-center gap-1.5 text-foreground font-semibold">
           <Move className="w-3.5 h-3.5 text-primary" />
           <span>Dịch Màn Hình</span>
-          <span className="text-[10px] px-1.5 py-0.2 rounded bg-primary/20 text-primary border border-primary/30 uppercase font-mono">
+          <span className="text-[10px] px-1.5 py-0.2 rounded bg-primary-muted text-primary border border-primary/30 uppercase font-mono">
             {data.sourceLang} → {data.targetLang}
           </span>
         </div>
 
         {/* Toolbar Controls */}
         <div className="flex items-center gap-1 titlebar-no-drag">
-          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-800/80 text-[10px]">
-            <Sliders className="w-3 h-3 text-slate-400" />
+          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-hover border border-border text-[10px]">
+            <Sliders className="w-3 h-3 text-muted-foreground" />
             <input
               type="range"
               min="0.3"
@@ -111,7 +109,7 @@ export const FloatingOverlay: React.FC = () => {
 
           <button
             onClick={handleTogglePin}
-            className={`p-1 rounded transition-colors ${alwaysOnTop ? 'text-primary bg-primary/10' : 'text-slate-400 hover:bg-slate-800'}`}
+            className={`p-1 rounded transition-colors ${alwaysOnTop ? 'text-primary bg-primary-muted border border-primary/20' : 'text-muted-foreground hover:bg-surface-hover'}`}
             title={alwaysOnTop ? 'Ghim trên cùng' : 'Bỏ ghim'}
           >
             {alwaysOnTop ? <Pin className="w-3.5 h-3.5" /> : <PinOff className="w-3.5 h-3.5" />}
@@ -119,7 +117,7 @@ export const FloatingOverlay: React.FC = () => {
 
           <button
             onClick={handleClose}
-            className="p-1 rounded text-slate-400 hover:text-white hover:bg-red-600 transition-colors"
+            className="p-1 rounded text-muted-foreground hover:text-white hover:bg-destructive transition-colors"
             title="Đóng cửa sổ"
           >
             <X className="w-3.5 h-3.5" />
@@ -130,22 +128,22 @@ export const FloatingOverlay: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 p-3.5 space-y-3 overflow-y-auto">
         {/* Source Text with clickable words */}
-        <div className="p-3 bg-slate-900/70 border border-slate-800/80 rounded-lg space-y-1.5">
+        <div className="p-3 bg-surface-hover/60 border border-border rounded-xl space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Nguyên văn:</span>
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Nguyên văn:</span>
             <div className="flex items-center gap-1">
               <AudioPlayer text={data.sourceText} lang={isZh ? 'zh' : 'en'} size="sm" />
               <AudioPlayer text={data.sourceText} lang={isZh ? 'zh' : 'en'} slow size="sm" />
             </div>
           </div>
 
-          <div className="text-lg font-medium leading-relaxed flex flex-wrap gap-1">
+          <div className="text-lg font-medium leading-relaxed flex flex-wrap gap-1 text-foreground">
             {data.words && data.words.length > 0 ? (
               data.words.map((w, idx) => (
                 <span
                   key={idx}
                   onClick={() => openWordModal(w)}
-                  className="cursor-pointer hover:bg-primary/20 hover:text-primary px-1 py-0.5 rounded transition-colors underline decoration-dotted decoration-slate-600 underline-offset-4"
+                  className="cursor-pointer hover:bg-primary-muted hover:text-primary px-1 py-0.5 rounded-lg transition-colors underline decoration-dotted decoration-muted-foreground/60 underline-offset-4"
                   title={`Bấm để xem định nghĩa: ${w.word}`}
                 >
                   {w.word}
@@ -158,16 +156,16 @@ export const FloatingOverlay: React.FC = () => {
 
           {/* Pinyin with tones */}
           {data.pinyin && (
-            <div className="pt-1 border-t border-slate-800/50">
+            <div className="pt-1 border-t border-border">
               <TonePinyin pinyin={data.pinyin} className="text-xs" />
             </div>
           )}
         </div>
 
         {/* Vietnamese Translation */}
-        <div className="p-3 bg-emerald-950/20 border border-emerald-800/30 rounded-lg space-y-1">
-          <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">Tiếng Việt:</span>
-          <p className="text-sm font-medium text-emerald-200 leading-relaxed">
+        <div className="p-3 bg-success-muted border border-success/30 rounded-xl space-y-1">
+          <span className="text-[11px] font-semibold text-success uppercase tracking-wider">Tiếng Việt:</span>
+          <p className="text-sm font-medium text-foreground leading-relaxed">
             {data.translatedText}
           </p>
         </div>
@@ -175,7 +173,7 @@ export const FloatingOverlay: React.FC = () => {
         {/* Vocabulary Token Chips */}
         {data.words && data.words.length > 0 && (
           <div className="space-y-1.5">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
               Từ vựng quan trọng (bấm để xem & lưu):
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -184,18 +182,18 @@ export const FloatingOverlay: React.FC = () => {
                 return (
                   <div
                     key={idx}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-900 border border-slate-700/80 text-xs"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface border border-border text-xs shadow-google-sm"
                   >
                     <span 
                       onClick={() => openWordModal(w)}
-                      className="cursor-pointer hover:text-primary font-medium"
+                      className="cursor-pointer hover:text-primary font-medium text-foreground"
                     >
                       {w.word}
                     </span>
-                    {w.pinyin && <span className="text-[10px] text-slate-400">({w.pinyin})</span>}
+                    {w.pinyin && <span className="text-[10px] text-muted-foreground">({w.pinyin})</span>}
                     <button
                       onClick={() => handleSaveWord(w)}
-                      className={`p-0.5 rounded hover:bg-slate-800 transition-colors ${saved ? 'text-emerald-400' : 'text-slate-400 hover:text-white'}`}
+                      className={`p-0.5 rounded hover:bg-surface-hover transition-colors ${saved ? 'text-success' : 'text-muted-foreground hover:text-foreground'}`}
                       title={saved ? 'Đã lưu' : 'Lưu vào từ vựng'}
                     >
                       {saved ? <Check className="w-3 h-3" /> : <BookmarkPlus className="w-3 h-3" />}

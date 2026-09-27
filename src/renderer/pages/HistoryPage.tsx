@@ -70,12 +70,12 @@ export const HistoryPage: React.FC = () => {
 
   const getSourceBadge = (type: string) => {
     const badges: Record<string, { label: string; color: string }> = {
-      screen: { label: 'Màn hình', color: 'bg-primary/20 text-primary border-primary/30' },
-      ocr: { label: 'OCR', color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
-      clipboard: { label: 'Bộ nhớ tạm', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
-      voice: { label: 'Giọng nói', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
-      manual: { label: 'Nhập tay', color: 'bg-slate-800 text-slate-400 border-slate-700' },
-      subtitle: { label: 'Phụ đề', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' },
+      screen: { label: 'Màn hình', color: 'bg-primary-muted text-primary border-primary/30' },
+      ocr: { label: 'OCR', color: 'bg-primary-muted text-primary border-primary/30' },
+      clipboard: { label: 'Bộ nhớ tạm', color: 'bg-warning-muted text-warning border-warning/30' },
+      voice: { label: 'Giọng nói', color: 'bg-success-muted text-success border-success/30' },
+      manual: { label: 'Nhập tay', color: 'bg-surface-hover text-foreground-secondary border-border' },
+      subtitle: { label: 'Phụ đề', color: 'bg-primary-muted text-primary border-primary/30' },
     };
     const b = badges[type] || badges.manual;
     return (
@@ -93,8 +93,8 @@ export const HistoryPage: React.FC = () => {
     <div className="p-6 space-y-6 max-w-5xl mx-auto overflow-y-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">{dict.history.title}</h1>
-          <p className="text-slate-400 text-xs mt-0.5">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">{dict.history.title}</h1>
+          <p className="text-muted-foreground text-xs mt-0.5">
             Lưu vết tất cả các phiên dịch từ màn hình, ảnh quét OCR, clipboard và đàm thoại.
           </p>
         </div>
@@ -102,7 +102,7 @@ export const HistoryPage: React.FC = () => {
         {historyItems.length > 0 && (
           <button
             onClick={handleClearAll}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-red-950/60 text-slate-400 hover:text-red-300 border border-slate-800 hover:border-red-800/60 text-xs font-medium flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-1.5 rounded-xl bg-surface hover:bg-destructive-muted text-muted-foreground hover:text-destructive border border-border hover:border-destructive/30 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-google-sm"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>{dict.history.clearAll}</span>
@@ -116,8 +116,10 @@ export const HistoryPage: React.FC = () => {
           <button
             key={f}
             onClick={() => setFilterType(f)}
-            className={`px-3 py-1.5 rounded-xl font-medium transition-colors ${
-              filterType === f ? 'bg-primary text-white' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+            className={`px-3.5 py-1.5 rounded-xl font-medium transition-colors shadow-google-sm ${
+              filterType === f 
+                ? 'bg-primary text-primary-foreground font-semibold' 
+                : 'bg-card border border-border text-foreground-secondary hover:text-foreground hover:bg-surface-hover'
             }`}
           >
             {f === 'all' ? 'Tất cả' : f === 'screen' ? 'Màn hình' : f.toUpperCase()}
@@ -130,9 +132,9 @@ export const HistoryPage: React.FC = () => {
         {filtered.map((item) => (
           <div
             key={item.id}
-            className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-2.5 shadow-xl hover:border-slate-700 transition-colors"
+            className="p-5 bg-card border border-border rounded-3xl space-y-2.5 shadow-google-md hover:border-primary/40 transition-colors"
           >
-            <div className="flex items-center justify-between text-xs text-slate-500">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
               <div className="flex items-center gap-2">
                 {getSourceBadge(item.sourceType)}
                 <span className="font-mono text-[11px] uppercase">
@@ -148,7 +150,7 @@ export const HistoryPage: React.FC = () => {
             {/* Original Text */}
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
-                <div className="text-base font-semibold text-white leading-snug">
+                <div className="text-base font-bold text-foreground leading-snug">
                   {item.sourceText}
                 </div>
                 {item.pinyin && <TonePinyin pinyin={item.pinyin} className="text-xs" />}
@@ -158,14 +160,14 @@ export const HistoryPage: React.FC = () => {
                 <AudioPlayer text={item.sourceText} lang={item.sourceLang as any} size="sm" />
                 <button
                   onClick={() => item.id && handleCopy(item.id, item.targetText)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                  className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-surface-hover border border-border transition-colors"
                   title="Sao chép"
                 >
-                  {copiedId === item.id ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  {copiedId === item.id ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={() => handleSaveToVocab(item)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-slate-800"
+                  className="p-1.5 rounded-xl text-muted-foreground hover:text-primary hover:bg-surface-hover border border-border transition-colors"
                   title="Lưu vào từ vựng"
                 >
                   <BookmarkPlus className="w-4 h-4" />
@@ -174,14 +176,14 @@ export const HistoryPage: React.FC = () => {
             </div>
 
             {/* Translation */}
-            <div className="pt-2 border-t border-slate-800/80 text-sm font-medium text-emerald-300">
+            <div className="pt-2 border-t border-border text-sm font-semibold text-success">
               {item.targetText}
             </div>
           </div>
         ))}
 
         {filtered.length === 0 && (
-          <div className="p-12 text-center text-slate-500 bg-slate-900/40 rounded-2xl border border-slate-800">
+          <div className="p-12 text-center text-muted-foreground bg-card rounded-3xl border border-border shadow-google-sm">
             {dict.history.empty}
           </div>
         )}

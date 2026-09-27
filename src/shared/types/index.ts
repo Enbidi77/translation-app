@@ -207,6 +207,7 @@ export interface AppSettings {
     textColor: string;
     backgroundColor: string;
     maxLines: number;
+    subtitleTheme?: 'follow_app' | 'dark' | 'light' | 'transparent';
   };
 }
 

@@ -3,11 +3,8 @@ import {
   Subtitles, 
   FileVideo, 
   Download, 
-  Play, 
   Sliders, 
-  Eye, 
-  Sparkles,
-  FileText
+  FileText 
 } from 'lucide-react';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { useAppStore } from '../stores/useAppStore';
@@ -26,8 +23,7 @@ export const SubtitlesPage: React.FC = () => {
   const { dict, settings, updateSettings } = useSettingsStore();
   const { showToast } = useAppStore();
 
-  const [activeMediaFile, setActiveMediaFile] = useState<string | null>(null);
-  const [subtitlesList, setSubtitlesList] = useState<SubtitleLine[]>([
+  const [subtitlesList] = useState<SubtitleLine[]>([
     {
       id: 1,
       startTime: '00:00:01,200',
@@ -95,15 +91,15 @@ export const SubtitlesPage: React.FC = () => {
     <div className="p-6 space-y-6 max-w-5xl mx-auto overflow-y-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">{dict.subtitles.title}</h1>
-          <p className="text-slate-400 text-xs mt-0.5">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">{dict.subtitles.title}</h1>
+          <p className="text-muted-foreground text-xs mt-0.5">
             Cửa sổ phụ đề nổi ghim trên màn hình khi xem phim, chơi game, xem YouTube và trích xuất phụ đề video.
           </p>
         </div>
 
         <button
           onClick={handleToggleOverlay}
-          className="px-4 py-2 rounded-xl bg-primary hover:bg-blue-600 text-white font-medium text-xs shadow-lg shadow-primary/20 flex items-center gap-2 transition-all"
+          className="px-4 py-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs shadow-google-sm flex items-center gap-2 transition-all"
         >
           <Subtitles className="w-4 h-4" />
           <span>{dict.subtitles.toggleOverlay}</span>
@@ -111,16 +107,16 @@ export const SubtitlesPage: React.FC = () => {
       </div>
 
       {/* Floating Subtitle Controls Banner */}
-      <div className="p-5 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-4 shadow-xl">
-        <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+      <div className="p-5 bg-card border border-border rounded-3xl space-y-4 shadow-google-md">
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
           <Sliders className="w-4 h-4 text-primary" />
           <span>Cấu hình hiển thị phụ đề nổi</span>
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
           {/* Font size */}
-          <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1.5">
-            <div className="flex items-center justify-between text-slate-300">
+          <div className="p-3 bg-surface rounded-2xl border border-border space-y-1.5 shadow-google-sm">
+            <div className="flex items-center justify-between text-foreground">
               <span>{dict.subtitles.fontSize}:</span>
               <span className="font-bold text-primary">{settings.subtitles.fontSize}px</span>
             </div>
@@ -135,8 +131,8 @@ export const SubtitlesPage: React.FC = () => {
           </div>
 
           {/* Opacity */}
-          <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1.5">
-            <div className="flex items-center justify-between text-slate-300">
+          <div className="p-3 bg-surface rounded-2xl border border-border space-y-1.5 shadow-google-sm">
+            <div className="flex items-center justify-between text-foreground">
               <span>{dict.subtitles.opacity}:</span>
               <span className="font-bold text-primary">{Math.round(settings.subtitles.opacity * 100)}%</span>
             </div>
@@ -152,8 +148,8 @@ export const SubtitlesPage: React.FC = () => {
           </div>
 
           {/* Pinyin Switch */}
-          <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl flex items-center justify-between">
-            <span className="text-slate-300">{dict.subtitles.showPinyin}</span>
+          <div className="p-3 bg-surface rounded-2xl border border-border flex items-center justify-between shadow-google-sm">
+            <span className="text-foreground">{dict.subtitles.showPinyin}</span>
             <input
               type="checkbox"
               checked={settings.subtitles.showPinyin}
@@ -165,24 +161,24 @@ export const SubtitlesPage: React.FC = () => {
       </div>
 
       {/* Media Transcription & Subtitles Table */}
-      <div className="p-5 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-4 shadow-xl">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+      <div className="p-5 bg-card border border-border rounded-3xl space-y-4 shadow-google-md">
+        <div className="flex items-center justify-between pb-3 border-b border-border">
           <div className="flex items-center gap-2">
-            <FileVideo className="w-5 h-5 text-indigo-400" />
-            <span className="text-sm font-semibold text-white">Danh sách phụ đề song ngữ mẫu</span>
+            <FileVideo className="w-5 h-5 text-primary" />
+            <span className="text-sm font-bold text-foreground">Danh sách phụ đề song ngữ mẫu</span>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handleExportSrt}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 rounded-xl bg-surface hover:bg-surface-hover text-foreground border border-border text-xs font-medium flex items-center gap-1.5 transition-colors shadow-google-sm"
             >
               <Download className="w-3.5 h-3.5" />
               <span>{dict.subtitles.exportSrt}</span>
             </button>
             <button
               onClick={handleExportVtt}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 rounded-xl bg-surface hover:bg-surface-hover text-foreground border border-border text-xs font-medium flex items-center gap-1.5 transition-colors shadow-google-sm"
             >
               <FileText className="w-3.5 h-3.5" />
               <span>{dict.subtitles.exportVtt}</span>
@@ -195,14 +191,14 @@ export const SubtitlesPage: React.FC = () => {
           {subtitlesList.map((sub) => (
             <div
               key={sub.id}
-              className="p-4 bg-slate-950/80 rounded-xl border border-slate-800/80 space-y-2 hover:border-slate-700 transition-colors"
+              className="p-4 bg-surface rounded-2xl border border-border space-y-2 hover:border-primary/40 transition-colors shadow-google-sm"
             >
-              <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
                 <span>{sub.startTime} ➔ {sub.endTime}</span>
-                <span className="text-primary">Dòng #{sub.id}</span>
+                <span className="text-primary font-semibold">Dòng #{sub.id}</span>
               </div>
 
-              <div className="text-base font-bold text-white tracking-wide">
+              <div className="text-base font-bold text-foreground tracking-wide">
                 {sub.chinese}
               </div>
 
@@ -210,7 +206,7 @@ export const SubtitlesPage: React.FC = () => {
                 <TonePinyin pinyin={sub.pinyin} />
               </div>
 
-              <div className="text-xs font-medium text-emerald-300">
+              <div className="text-xs font-medium text-success">
                 {sub.vietnamese}
               </div>
             </div>

@@ -55,10 +55,15 @@ export const IPC_CHANNELS = {
   SUBTITLE_SESSION_STOP: 'subtitle:stop',
   SUBTITLE_NEW_ENTRY: 'subtitle:new-entry',
 
+  // Theme
+  THEME_CHANGE: 'theme:change',
+  THEME_GET: 'theme:get',
+
   // Events from Main to Renderer
   EVENT_CLIPBOARD_TEXT: 'event:clipboard-text',
   EVENT_GLOBAL_SHORTCUT: 'event:global-shortcut',
   EVENT_OVERLAY_DATA: 'event:overlay-data',
   EVENT_SUBTITLE_DATA: 'event:subtitle-data',
   EVENT_SNIP_START: 'event:snip-start',
+  EVENT_THEME_UPDATED: 'event:theme-updated',
 } as const;

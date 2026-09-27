@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Crop, Check, X, Loader2 } from 'lucide-react';
+import { Crop, Loader2 } from 'lucide-react';
+import { useSettingsStore } from '../stores/useSettingsStore';
 
 export const SnipOverlay: React.FC = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
   const [currentPos, setCurrentPos] = useState<{ x: number; y: number } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { initTheme } = useSettingsStore();
 
   useEffect(() => {
+    const unsubTheme = initTheme();
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         window.electronAPI?.cancelSnip();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      unsubTheme?.();
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -73,11 +79,11 @@ export const SnipOverlay: React.FC = () => {
       )}
 
       {/* Top Banner Guide */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-slate-900/90 text-white rounded-full border border-slate-700/80 shadow-2xl flex items-center gap-2 text-xs font-medium z-50 pointer-events-none backdrop-blur-md">
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-surface/95 text-foreground rounded-full border border-border shadow-google-lg flex items-center gap-2 text-xs font-medium z-50 pointer-events-none backdrop-blur-md">
         <Crop className="w-4 h-4 text-primary animate-pulse" />
         <span>
           Kéo chuột để chọn vùng chữ cần dịch • Nhấn{' '}
-          <kbd className="px-1.5 py-0.5 bg-slate-800 rounded font-mono border border-slate-600 text-slate-300">
+          <kbd className="px-1.5 py-0.5 bg-surface-hover rounded font-mono border border-border text-foreground">
             Esc
           </kbd>{' '}
           để hủy
@@ -98,13 +104,13 @@ export const SnipOverlay: React.FC = () => {
           }}
         >
           {/* Corner Precision Markers */}
-          <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-white" />
-          <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-white" />
-          <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-white" />
-          <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-white" />
+          <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-primary" />
+          <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-primary" />
+          <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-primary" />
+          <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-primary" />
 
           {/* Dimension Badge */}
-          <div className="absolute -top-7 left-0 px-2 py-0.5 bg-primary text-white text-[11px] font-mono rounded shadow-lg whitespace-nowrap">
+          <div className="absolute -top-7 left-0 px-2 py-0.5 bg-primary text-primary-foreground text-[11px] font-mono rounded shadow-google-sm whitespace-nowrap">
             {rect.width} × {rect.height} px
           </div>
         </div>
@@ -113,7 +119,7 @@ export const SnipOverlay: React.FC = () => {
       {/* Processing State Modal */}
       {isProcessing && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-50">
-          <div className="px-5 py-3.5 bg-slate-900/95 border border-slate-700 rounded-2xl text-white text-xs font-semibold shadow-2xl flex items-center gap-3 backdrop-blur-md">
+          <div className="px-5 py-3.5 bg-surface/95 border border-border rounded-2xl text-foreground text-xs font-semibold shadow-google-lg flex items-center gap-3 backdrop-blur-md">
             <Loader2 className="w-4 h-4 text-primary animate-spin" />
             <span>Đang nhận diện chữ và dịch...</span>
           </div>

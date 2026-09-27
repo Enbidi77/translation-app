@@ -101,15 +101,15 @@ export const OcrPage: React.FC = () => {
     >
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">{dict.ocr.title}</h1>
-          <p className="text-slate-400 text-xs mt-0.5">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">{dict.ocr.title}</h1>
+          <p className="text-muted-foreground text-xs mt-0.5">
             Nhận diện văn bản từ ảnh chụp màn hình, game, tài liệu PDF, truyện tranh hoặc ảnh dán trực tiếp.
           </p>
         </div>
 
         <button
           onClick={handleTriggerSnip}
-          className="px-4 py-2 rounded-xl bg-primary hover:bg-blue-600 text-white font-medium text-xs shadow-lg shadow-primary/20 flex items-center gap-2 transition-all"
+          className="px-4 py-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs shadow-google-sm flex items-center gap-2 transition-all"
         >
           <Crop className="w-4 h-4" />
           <span>{dict.ocr.snipScreen}</span>
@@ -119,7 +119,7 @@ export const OcrPage: React.FC = () => {
       {/* Upload & Dropzone Area */}
       <div
         onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-slate-700/80 hover:border-primary/60 bg-slate-900/50 hover:bg-slate-900/80 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all group"
+        className="border-2 border-dashed border-border hover:border-primary/60 bg-card hover:bg-surface-hover rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all group shadow-google-sm"
       >
         <input
           ref={fileInputRef}
@@ -128,20 +128,20 @@ export const OcrPage: React.FC = () => {
           onChange={handleFileChange}
           className="hidden"
         />
-        <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform mb-3">
+        <div className="w-12 h-12 rounded-2xl bg-primary-muted text-primary flex items-center justify-center group-hover:scale-110 transition-transform mb-3 shadow-google-sm">
           <UploadCloud className="w-6 h-6" />
         </div>
-        <p className="text-sm font-medium text-slate-200">{dict.ocr.dragDrop}</p>
-        <p className="text-xs text-slate-500 mt-1">
-          Hỗ trợ định dạng PNG, JPG, WebM hoặc nhấn <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400 font-mono">Ctrl + V</kbd> để dán ảnh
+        <p className="text-sm font-semibold text-foreground">{dict.ocr.dragDrop}</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Hỗ trợ định dạng PNG, JPG, WebM hoặc nhấn <kbd className="px-1.5 py-0.5 bg-surface-hover rounded text-foreground font-mono border border-border">Ctrl + V</kbd> để dán ảnh
         </p>
       </div>
 
       {/* OCR & Processing State */}
       {isProcessing && (
-        <div className="p-8 bg-slate-900/70 border border-slate-800 rounded-2xl flex flex-col items-center justify-center space-y-3">
+        <div className="p-8 bg-card border border-border rounded-3xl flex flex-col items-center justify-center space-y-3 shadow-google-md">
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          <p className="text-sm font-medium text-slate-300">{dict.ocr.recognizing}</p>
+          <p className="text-sm font-medium text-foreground">{dict.ocr.recognizing}</p>
         </div>
       )}
 
@@ -149,28 +149,28 @@ export const OcrPage: React.FC = () => {
       {ocrResult && !isProcessing && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left: Image preview & lines */}
-          <div className="p-5 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-4 shadow-xl">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <div className="p-5 bg-card border border-border rounded-3xl space-y-4 shadow-google-md">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {dict.ocr.recognizedText}
               </span>
-              <span className="text-xs px-2 py-0.5 rounded bg-blue-900/50 text-blue-300 border border-blue-700/50">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary-muted text-primary border border-primary/30 font-semibold">
                 Độ chính xác: {ocrResult.confidence}%
               </span>
             </div>
 
             {imagePreview && (
-              <div className="rounded-xl overflow-hidden border border-slate-800 max-h-48 flex items-center justify-center bg-black/40">
+              <div className="rounded-2xl overflow-hidden border border-border max-h-48 flex items-center justify-center bg-surface-hover">
                 <img src={imagePreview} alt="OCR Target" className="max-h-48 object-contain" />
               </div>
             )}
 
-            <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800 space-y-2">
-              <div className="text-base font-medium text-white leading-relaxed whitespace-pre-wrap">
+            <div className="p-4 bg-surface rounded-2xl border border-border space-y-2 shadow-google-sm">
+              <div className="text-base font-medium text-foreground leading-relaxed whitespace-pre-wrap">
                 {ocrResult.text}
               </div>
               {ocrResult.lines && ocrResult.lines.length > 0 && (
-                <div className="pt-2 border-t border-slate-800/80 text-[11px] text-slate-400">
+                <div className="pt-2 border-t border-border text-[11px] text-muted-foreground">
                   Tổng số dòng: {ocrResult.lines.length}
                 </div>
               )}
@@ -178,9 +178,9 @@ export const OcrPage: React.FC = () => {
           </div>
 
           {/* Right: Translation & Learning breakdown */}
-          <div className="p-5 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-4 shadow-xl">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
+          <div className="p-5 bg-card border border-border rounded-3xl space-y-4 shadow-google-md">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <span className="text-xs font-semibold text-success uppercase tracking-wider">
                 Bản dịch Tiếng Việt
               </span>
               {translation && (
@@ -193,13 +193,13 @@ export const OcrPage: React.FC = () => {
 
             {translation ? (
               <div className="space-y-4">
-                <p className="text-lg font-bold text-emerald-300 leading-snug">
+                <p className="text-lg font-bold text-success leading-snug">
                   {translation.translatedText}
                 </p>
 
                 {translation.pinyin && (
-                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800/80">
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block mb-1">
+                  <div className="p-3 bg-surface rounded-2xl border border-border shadow-google-sm">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">
                       Pinyin:
                     </span>
                     <TonePinyin pinyin={translation.pinyin} className="text-xs font-medium" />
@@ -208,8 +208,8 @@ export const OcrPage: React.FC = () => {
 
                 {/* Vocabulary Chips */}
                 {translation.words && translation.words.length > 0 && (
-                  <div className="space-y-2 pt-2 border-t border-slate-800">
-                    <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                  <div className="space-y-2 pt-2 border-t border-border">
+                    <span className="text-xs font-semibold text-foreground-secondary uppercase tracking-wider">
                       Từ vựng bóc tách (bấm để xem & lưu):
                     </span>
                     <div className="flex flex-wrap gap-1.5">
@@ -217,7 +217,7 @@ export const OcrPage: React.FC = () => {
                         <button
                           key={i}
                           onClick={() => openWordModal(w)}
-                          className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700/80 hover:border-primary text-xs font-medium text-slate-200 transition-colors"
+                          className="px-2.5 py-1 rounded-xl bg-surface border border-border hover:border-primary text-xs font-medium text-foreground transition-colors shadow-google-sm"
                         >
                           {w.word}
                         </button>
@@ -227,7 +227,7 @@ export const OcrPage: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="text-xs text-slate-500">Chưa có bản dịch.</div>
+              <div className="text-xs text-muted-foreground">Chưa có bản dịch.</div>
             )}
           </div>
         </div>

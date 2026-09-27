@@ -1,4 +1,4 @@
-import { ipcMain, app, BrowserWindow } from 'electron';
+import { ipcMain, app, BrowserWindow, nativeTheme } from 'electron';
 import { IPC_CHANNELS } from '../../shared/constants/ipc';
 import { DatabaseService } from '../../database';
 import { VocabularyRepository } from '../../database/repositories/vocabularyRepository';
@@ -32,6 +32,33 @@ export function setupIpcHandlers() {
   aiManager.updateConfig(currentSettings.providers);
   ocrManager.updateConfig(currentSettings.providers);
   transManager.setPreferredProvider(currentSettings.providers.translationProvider);
+
+  // Apply theme to Electron nativeTheme
+  nativeTheme.themeSource = currentSettings.general.theme || 'dark';
+
+  const broadcastTheme = (themeMode?: string, subtitleTheme?: string) => {
+    const current = settingsRepo.getSettings();
+    const mode = (themeMode || current.general.theme || 'dark') as 'dark' | 'light' | 'system';
+    const subTheme = subtitleTheme || current.subtitles?.subtitleTheme || 'follow_app';
+    const effectiveTheme = mode === 'system' ? (nativeTheme.shouldUseDarkColors ? 'dark' : 'light') : mode;
+
+    BrowserWindow.getAllWindows().forEach((win) => {
+      if (!win.isDestroyed()) {
+        win.webContents.send(IPC_CHANNELS.EVENT_THEME_UPDATED, {
+          theme: mode,
+          effectiveTheme,
+          subtitleTheme: subTheme,
+        });
+      }
+    });
+  };
+
+  nativeTheme.on('updated', () => {
+    const current = settingsRepo.getSettings();
+    if (current.general.theme === 'system') {
+      broadcastTheme('system', current.subtitles?.subtitleTheme);
+    }
+  });
 
   // App & Window Handlers
   ipcMain.handle(IPC_CHANNELS.APP_GET_VERSION, () => app.getVersion());
@@ -143,6 +170,11 @@ export function setupIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.SETTINGS_SAVE, (event, newSettings) => {
     const updated = settingsRepo.saveSettings(newSettings);
+    // Update theme if changed
+    if (updated.general?.theme) {
+      nativeTheme.themeSource = updated.general.theme;
+      broadcastTheme(updated.general.theme, updated.subtitles?.subtitleTheme);
+    }
     // Update active service configs
     aiManager.updateConfig(updated.providers);
     ocrManager.updateConfig(updated.providers);
@@ -150,6 +182,32 @@ export function setupIpcHandlers() {
     ShortcutService.getInstance().registerShortcuts(updated.hotkeys);
     ClipboardService.getInstance().setEnabled(updated.general.enableClipboardWatcher);
     return updated;
+  });
+
+  // Theme Handlers
+  ipcMain.handle(IPC_CHANNELS.THEME_CHANGE, (event, mode: 'dark' | 'light' | 'system') => {
+    nativeTheme.themeSource = mode;
+    const current = settingsRepo.getSettings();
+    const updated = settingsRepo.saveSettings({
+      general: {
+        ...current.general,
+        theme: mode,
+      },
+    });
+    broadcastTheme(mode, updated.subtitles?.subtitleTheme);
+    const effectiveTheme = mode === 'system' ? (nativeTheme.shouldUseDarkColors ? 'dark' : 'light') : mode;
+    return { theme: mode, effectiveTheme };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.THEME_GET, () => {
+    const current = settingsRepo.getSettings();
+    const mode = current.general.theme || 'dark';
+    const effectiveTheme = mode === 'system' ? (nativeTheme.shouldUseDarkColors ? 'dark' : 'light') : mode;
+    return {
+      theme: mode,
+      effectiveTheme,
+      subtitleTheme: current.subtitles?.subtitleTheme || 'follow_app',
+    };
   });
 
   // Vocabulary Handlers
