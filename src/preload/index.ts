@@ -66,6 +66,19 @@ export const electronAPI = {
     cached?: boolean;
     error?: string;
   }> => ipcRenderer.invoke(IPC_CHANNELS.TTS_SYNTHESIZE, params),
+  transcribeAudio: (params: {
+    audioData: string;
+    mimeType?: string;
+    sourceLang?: string;
+    targetLang?: string;
+  }): Promise<{
+    success: boolean;
+    transcript?: string;
+    translation?: string;
+    pinyin?: string;
+    error?: string;
+    errorCode?: 'NO_API_KEY' | 'STT_FAILED' | 'NETWORK_ERROR' | 'INVALID_AUDIO';
+  }> => ipcRenderer.invoke(IPC_CHANNELS.VOICE_TRANSCRIBE, params),
 
   // History & Statistics
   getHistory: (limit?: number) => ipcRenderer.invoke(IPC_CHANNELS.HISTORY_GET, limit),

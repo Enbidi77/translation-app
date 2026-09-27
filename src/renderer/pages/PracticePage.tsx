@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Headphones, 
   Mic, 
@@ -56,52 +56,105 @@ export const PracticePage: React.FC = () => {
     setListenSubmitted(true);
   };
 
-  const handleStartSpeaking = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      showToast('Trình duyệt không hỗ trợ nhận diện giọng nói.', 'warning');
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const handleStartSpeaking = async () => {
+    if (isRecording) {
+      // User is stopping the recording
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+      setIsRecording(false);
+      showToast('Đang chấm điểm phát âm...', 'info');
       return;
     }
 
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'zh-CN';
-    recognition.interimResults = false;
+    // User is starting the recording
+    setSpokenTranscript('');
+    setSpeechEvaluation(null);
 
-    recognition.onstart = () => {
-      setIsRecording(true);
-      setSpokenTranscript('');
-      setSpeechEvaluation(null);
-    };
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
 
-    recognition.onresult = async (event: any) => {
-      const text = event.results[0][0].transcript;
-      setSpokenTranscript(text);
-      setIsRecording(false);
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : 'audio/mp4';
 
-      // Evaluate pronunciation via AI
-      setIsEvaluating(true);
-      try {
-        if (window.electronAPI) {
-          const evalRes = await window.electronAPI.evaluateSpeech({
-            targetText: speakSentence.chinese,
-            spokenText: text,
-            lang: 'zh',
-          });
-          setSpeechEvaluation(evalRes);
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
         }
-      } catch (err) {
-        console.error('Speech evaluation failed:', err);
-      } finally {
-        setIsEvaluating(false);
-      }
-    };
+      };
 
-    recognition.onerror = () => {
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        audioChunksRef.current = [];
+
+        if (blob.size < 500) {
+          showToast('Đoạn ghi âm quá ngắn. Vui lòng nói to rõ hơn!', 'warning');
+          return;
+        }
+
+        setIsEvaluating(true);
+        try {
+          const reader = new FileReader();
+          reader.readAsDataURL(blob);
+          reader.onloadend = async () => {
+            const base64Data = reader.result as string;
+            let recognizedText = '';
+
+            if (window.electronAPI?.transcribeAudio) {
+              const res = await window.electronAPI.transcribeAudio({
+                audioData: base64Data,
+                mimeType,
+                sourceLang: 'zh-CN',
+                targetLang: 'vi',
+              });
+              if (res.success && res.transcript) {
+                recognizedText = res.transcript;
+                setSpokenTranscript(recognizedText);
+              }
+            }
+
+            // Evaluate speech against target sentence
+            if (window.electronAPI?.evaluateSpeech) {
+              const evalRes = await window.electronAPI.evaluateSpeech({
+                targetText: speakSentence.chinese,
+                spokenText: recognizedText || speakSentence.chinese,
+                lang: 'zh',
+              });
+              setSpeechEvaluation(evalRes);
+            }
+            setIsEvaluating(false);
+          };
+        } catch (err) {
+          console.error('Speech evaluation failed:', err);
+          setIsEvaluating(false);
+          showToast('Lỗi khi chấm điểm phát âm.', 'error');
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      showToast('Đang ghi âm... Nhấn lại vào nút khi đọc xong câu!', 'info');
+    } catch (err: any) {
+      console.error('Failed to access microphone in practice:', err);
       setIsRecording(false);
-      showToast('Không bắt được giọng nói. Vui lòng thử lại!', 'warning');
-    };
-
-    recognition.start();
+      showToast(`Không thể mở micro: ${err.message}`, 'error');
+    }
   };
 
   return (

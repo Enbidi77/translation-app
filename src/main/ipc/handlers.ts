@@ -16,9 +16,11 @@ import { SubtitleWindowManager } from '../windows/subtitleWindow';
 import { ShortcutService } from '../services/shortcutService';
 import { ClipboardService } from '../services/clipboardService';
 import { TtsService } from '../services/ttsService';
+import { SttService } from '../services/sttService';
 
 export function setupIpcHandlers() {
   const ttsService = TtsService.getInstance();
+  const sttService = SttService.getInstance();
   const vocabRepo = new VocabularyRepository();
   const flashcardRepo = new FlashcardRepository();
   const historyRepo = new HistoryRepository();
@@ -28,6 +30,7 @@ export function setupIpcHandlers() {
   const aiManager = new AiManager();
   const transManager = new TranslationManager(aiManager);
   const ocrManager = new OcrManager();
+  sttService.setTranslationManager(transManager);
 
   // Load and apply initial settings
   const currentSettings = settingsRepo.getSettings();
@@ -273,6 +276,11 @@ export function setupIpcHandlers() {
   // Text To Speech (TTS) Handler
   ipcMain.handle(IPC_CHANNELS.TTS_SYNTHESIZE, async (event, request) => {
     return await ttsService.synthesize(request);
+  });
+
+  // Speech To Text (STT) & Realtime Voice Translation Handler
+  ipcMain.handle(IPC_CHANNELS.VOICE_TRANSCRIBE, async (event, request) => {
+    return await sttService.transcribeAndTranslate(request);
   });
 
   // Translation History Handlers

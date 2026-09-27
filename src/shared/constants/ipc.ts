@@ -35,6 +35,7 @@ export const IPC_CHANNELS = {
   OCR_PROCESS_IMAGE: 'ocr:process-image',
   OCR_PROCESS_RECT: 'ocr:process-rect',
   TTS_SYNTHESIZE: 'tts:synthesize',
+  VOICE_TRANSCRIBE: 'voice:transcribe',
 
   // History
   HISTORY_GET: 'history:get',
