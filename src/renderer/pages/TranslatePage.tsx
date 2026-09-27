@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   ArrowRightLeft, 
   Sparkles, 
@@ -8,7 +8,10 @@ import {
   AlertCircle, 
   BookOpen, 
   ChevronDown, 
-  ChevronUp 
+  ChevronUp,
+  Mic,
+  MicOff,
+  Loader2
 } from 'lucide-react';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { useAppStore } from '../stores/useAppStore';
@@ -31,13 +34,20 @@ export const TranslatePage: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(true);
 
-  const handleTranslate = async () => {
-    if (!inputText.trim()) return;
+  // Voice recording state
+  const [isVoiceRecording, setIsVoiceRecording] = useState(false);
+  const [isVoiceProcessing, setIsVoiceProcessing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const handleTranslateWithText = async (textToTranslate: string) => {
+    if (!textToTranslate.trim()) return;
     setIsLoading(true);
     try {
       if (window.electronAPI) {
         const res = await window.electronAPI.translate({
-          text: inputText.trim(),
+          text: textToTranslate.trim(),
           sourceLang,
           targetLang,
           mode,
@@ -49,6 +59,95 @@ export const TranslatePage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleToggleVoiceInput = async () => {
+    if (isVoiceRecording) {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+      setIsVoiceRecording(false);
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : 'audio/mp4';
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        audioChunksRef.current = [];
+        if (blob.size < 600) return;
+
+        setIsVoiceProcessing(true);
+        try {
+          const reader = new FileReader();
+          reader.readAsDataURL(blob);
+          reader.onloadend = async () => {
+            const base64Data = reader.result as string;
+            if (window.electronAPI?.transcribeAudio) {
+              const srcL = sourceLang === 'auto' ? 'zh-CN' : sourceLang === 'zh' ? 'zh-CN' : sourceLang === 'en' ? 'en-US' : 'vi-VN';
+              const res = await window.electronAPI.transcribeAudio({
+                audioData: base64Data,
+                mimeType,
+                sourceLang: srcL,
+                targetLang,
+              });
+              if (res.success && res.transcript) {
+                setInputText(res.transcript);
+                if (res.translation) {
+                  setResult({
+                    sourceText: res.transcript,
+                    translatedText: res.translation,
+                    sourceLang: (sourceLang === 'auto' ? (res.pinyin ? 'zh' : 'en') : sourceLang) as any,
+                    targetLang,
+                    pinyin: res.pinyin,
+                    provider: 'ai_voice',
+                  });
+                } else {
+                  handleTranslateWithText(res.transcript);
+                }
+              } else {
+                showToast(res.error || 'Không nhận diện được giọng nói.', 'warning');
+              }
+            }
+            setIsVoiceProcessing(false);
+          };
+        } catch (err) {
+          setIsVoiceProcessing(false);
+          showToast('Lỗi nhận diện âm thanh.', 'error');
+        }
+      };
+
+      mediaRecorder.start();
+      setIsVoiceRecording(true);
+      showToast('Đang lắng nghe... Nói xong bấm lại nút micro để dịch!', 'info');
+    } catch (err: any) {
+      setIsVoiceRecording(false);
+      showToast(`Không thể mở micro: ${err.message}`, 'error');
+    }
+  };
+
+  const handleTranslate = async () => {
+    handleTranslateWithText(inputText);
   };
 
   const handleCopy = () => {
@@ -173,6 +272,31 @@ export const TranslatePage: React.FC = () => {
           <div className="flex items-center justify-between mt-2">
             <span className="text-[11px] text-muted-foreground">Mẹo: Nhấn <kbd className="px-1.5 py-0.5 bg-surface-hover rounded font-mono border border-border text-foreground">Ctrl + Enter</kbd> để dịch ngay</span>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleToggleVoiceInput}
+                disabled={isVoiceProcessing}
+                className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all shadow-google-sm ${
+                  isVoiceProcessing
+                    ? 'bg-primary/20 text-primary border-primary/30'
+                    : isVoiceRecording
+                    ? 'bg-destructive text-destructive-foreground border-destructive animate-pulse'
+                    : 'bg-surface hover:bg-surface-hover text-foreground border-border hover:border-primary/40'
+                }`}
+                title={isVoiceRecording ? 'Bấm để dừng và chuyển giọng nói thành văn bản' : 'Nói qua micro để dịch (Voice input)'}
+              >
+                {isVoiceProcessing ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                ) : isVoiceRecording ? (
+                  <MicOff className="w-3.5 h-3.5 text-destructive-foreground" />
+                ) : (
+                  <Mic className="w-3.5 h-3.5 text-primary" />
+                )}
+                <span>
+                  {isVoiceProcessing ? 'Đang nhận diện...' : isVoiceRecording ? 'Đang nghe...' : 'Nói để dịch'}
+                </span>
+              </button>
+
               <button
                 onClick={() => setInputText('')}
                 className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded-xl hover:bg-surface-hover transition-colors"

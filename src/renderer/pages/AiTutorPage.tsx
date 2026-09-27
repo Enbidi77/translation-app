@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Bot, 
   Send, 
@@ -7,7 +7,10 @@ import {
   AlertCircle, 
   Volume2, 
   BookOpen,
-  MessageSquare
+  MessageSquare,
+  Mic,
+  MicOff,
+  Loader2
 } from 'lucide-react';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { useAppStore } from '../stores/useAppStore';
@@ -32,6 +35,13 @@ export const AiTutorPage: React.FC = () => {
   const [level, setLevel] = useState('Sơ - Trung cấp (HSK 3 / B1)');
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+
+  // Voice recording state
+  const [isVoiceRecording, setIsVoiceRecording] = useState(false);
+  const [isVoiceProcessing, setIsVoiceProcessing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -86,6 +96,79 @@ export const AiTutorPage: React.FC = () => {
       showToast(`Lỗi gửi tin nhắn AI: ${err.message}`, 'error');
     } finally {
       setIsTyping(false);
+    }
+  };
+
+  const handleToggleVoiceInput = async () => {
+    if (isVoiceRecording) {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+      setIsVoiceRecording(false);
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : 'audio/mp4';
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        audioChunksRef.current = [];
+        if (blob.size < 600) return;
+
+        setIsVoiceProcessing(true);
+        try {
+          const reader = new FileReader();
+          reader.readAsDataURL(blob);
+          reader.onloadend = async () => {
+            const base64Data = reader.result as string;
+            if (window.electronAPI?.transcribeAudio) {
+              const res = await window.electronAPI.transcribeAudio({
+                audioData: base64Data,
+                mimeType,
+                sourceLang: 'zh-CN',
+                targetLang: 'vi',
+              });
+              if (res.success && res.transcript) {
+                setInputMessage(res.transcript);
+                showToast('Đã nhận diện giọng nói! Bấm Gửi để trò chuyện.', 'success');
+              } else {
+                showToast(res.error || 'Không nhận diện được giọng nói.', 'warning');
+              }
+            }
+            setIsVoiceProcessing(false);
+          };
+        } catch (err) {
+          setIsVoiceProcessing(false);
+          showToast('Lỗi nhận diện âm thanh.', 'error');
+        }
+      };
+
+      mediaRecorder.start();
+      setIsVoiceRecording(true);
+      showToast('Đang lắng nghe... Hãy nói tiếng Trung hoặc tiếng Anh!', 'info');
+    } catch (err: any) {
+      setIsVoiceRecording(false);
+      showToast(`Không thể mở micro: ${err.message}`, 'error');
     }
   };
 
@@ -220,6 +303,28 @@ export const AiTutorPage: React.FC = () => {
 
       {/* Input Box Footer */}
       <div className="shrink-0 flex items-center gap-2 bg-card border border-border p-2 rounded-2xl shadow-google-md">
+        <button
+          type="button"
+          onClick={handleToggleVoiceInput}
+          disabled={isVoiceProcessing || isTyping}
+          className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center transition-all shadow-google-sm shrink-0 ${
+            isVoiceProcessing
+              ? 'bg-primary/20 text-primary border-primary/30'
+              : isVoiceRecording
+              ? 'bg-destructive text-destructive-foreground border-destructive animate-pulse'
+              : 'bg-surface hover:bg-surface-hover text-foreground border-border hover:border-primary/40'
+          }`}
+          title={isVoiceRecording ? 'Bấm để dừng ghi và chuyển giọng nói thành văn bản' : 'Nói để trò chuyện cùng gia sư AI (Voice chat)'}
+        >
+          {isVoiceProcessing ? (
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+          ) : isVoiceRecording ? (
+            <MicOff className="w-4 h-4 text-destructive-foreground" />
+          ) : (
+            <Mic className="w-4 h-4 text-primary" />
+          )}
+        </button>
+
         <input
           type="text"
           value={inputMessage}

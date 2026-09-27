@@ -159,29 +159,59 @@ Respond with ONLY valid JSON adhering to this exact format:
     const data = await response.json();
     const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!candidateText) {
-      throw new Error('Gemini không trả về nội dung nhận diện');
+      throw new Error('Gemini không trả về nội dung nhận diện âm thanh.');
     }
+
+    let transcript = '';
+    let translation = '';
+    let pinyin = '';
 
     try {
-      const parsed = JSON.parse(candidateText);
-      const transcript = (parsed.transcript || '').trim();
-      const translation = (parsed.translation || '').trim();
-      const pinyin = parsed.pinyin || (transcript && /[\u4e00-\u9fa5]/.test(transcript) ? PinyinService.getPinyin(transcript) : '');
+      let cleanJson = candidateText.trim();
+      const codeBlockMatch = cleanJson.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (codeBlockMatch) {
+        cleanJson = codeBlockMatch[1].trim();
+      }
+      const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanJson = jsonMatch[0];
+      }
 
-      return {
-        success: true,
-        transcript,
-        translation,
-        pinyin,
-      };
+      const parsed = JSON.parse(cleanJson);
+      transcript = (parsed.transcript || '').trim();
+      translation = (parsed.translation || '').trim();
+      pinyin = (parsed.pinyin || '').trim();
     } catch {
-      return {
-        success: true,
-        transcript: candidateText,
-        translation: '',
-        pinyin: PinyinService.getPinyin(candidateText),
-      };
+      transcript = candidateText.trim();
     }
+
+    // Fallback translation if translation was not included in Gemini response
+    if (transcript && !translation && this.transManager) {
+      try {
+        const isoSrc = sourceLang.split('-')[0].toLowerCase() as any;
+        const transRes = await this.transManager.translate({
+          text: transcript,
+          sourceLang: isoSrc,
+          targetLang: targetLang as any,
+          mode: 'natural',
+        });
+        translation = transRes.translatedText;
+        if (!pinyin) pinyin = transRes.pinyin || '';
+      } catch (err) {
+        console.warn('[SttService] Fallback translation error:', err);
+      }
+    }
+
+    if (!pinyin && transcript && /[\u4e00-\u9fa5]/.test(transcript)) {
+      pinyin = PinyinService.getPinyin(transcript);
+    }
+
+    return {
+      success: true,
+      transcript,
+      translation,
+      pinyin,
+    };
   }
 
   private async transcribeWithWhisper(
