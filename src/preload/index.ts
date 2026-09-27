@@ -1,0 +1,118 @@
+import { contextBridge, ipcRenderer } from 'electron';
+import { IPC_CHANNELS } from '../shared/constants/ipc';
+import { 
+  TranslationRequest, 
+  TranslationResponse, 
+  VocabularyItem, 
+  FlashcardRating, 
+  AppSettings,
+  OCRResult 
+} from '../shared/types';
+
+export const electronAPI = {
+  // App & Windows
+  getVersion: () => ipcRenderer.invoke(IPC_CHANNELS.APP_GET_VERSION),
+  minimize: () => ipcRenderer.send(IPC_CHANNELS.APP_MINIMIZE),
+  maximize: () => ipcRenderer.send(IPC_CHANNELS.APP_MAXIMIZE),
+  close: () => ipcRenderer.send(IPC_CHANNELS.APP_CLOSE),
+
+  // Overlay / Subtitle window controls
+  setAlwaysOnTop: (flag: boolean) => ipcRenderer.send(IPC_CHANNELS.WINDOW_SET_ALWAYS_ON_TOP, flag),
+  setClickThrough: (flag: boolean) => ipcRenderer.send(IPC_CHANNELS.WINDOW_SET_CLICK_THROUGH, flag),
+  setOpacity: (opacity: number) => ipcRenderer.send(IPC_CHANNELS.WINDOW_SET_OPACITY, opacity),
+  triggerSnip: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_TRIGGER_SNIP),
+  completeSnip: (rect: { x: number; y: number; width: number; height: number }) => 
+    ipcRenderer.invoke(IPC_CHANNELS.WINDOW_COMPLETE_SNIP, rect),
+  cancelSnip: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_CANCEL_SNIP),
+
+  // Settings
+  getSettings: (): Promise<AppSettings> => ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_GET),
+  saveSettings: (settings: Partial<AppSettings>): Promise<AppSettings> => 
+    ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_SAVE, settings),
+
+  // Vocabulary
+  getVocabulary: (language?: string): Promise<VocabularyItem[]> => 
+    ipcRenderer.invoke(IPC_CHANNELS.VOCAB_GET_ALL, language),
+  getVocabularyById: (id: number): Promise<VocabularyItem | null> => 
+    ipcRenderer.invoke(IPC_CHANNELS.VOCAB_GET_BY_ID, id),
+  searchVocabulary: (query: string): Promise<VocabularyItem[]> => 
+    ipcRenderer.invoke(IPC_CHANNELS.VOCAB_SEARCH, query),
+  saveVocabulary: (item: VocabularyItem): Promise<VocabularyItem> => 
+    ipcRenderer.invoke(IPC_CHANNELS.VOCAB_SAVE, item),
+  deleteVocabulary: (id: number): Promise<boolean> => 
+    ipcRenderer.invoke(IPC_CHANNELS.VOCAB_DELETE, id),
+
+  // Flashcards & SRS
+  getDueFlashcards: (limit?: number) => ipcRenderer.invoke(IPC_CHANNELS.FLASHCARD_GET_DUE, limit),
+  reviewFlashcard: (cardId: number, rating: FlashcardRating) => 
+    ipcRenderer.invoke(IPC_CHANNELS.FLASHCARD_REVIEW, { cardId, rating }),
+  getFlashcardStats: () => ipcRenderer.invoke(IPC_CHANNELS.FLASHCARD_GET_STATS),
+
+  // Translation & OCR
+  translate: (request: TranslationRequest): Promise<TranslationResponse> => 
+    ipcRenderer.invoke(IPC_CHANNELS.TRANSLATE_TEXT, request),
+  detectLanguage: (text: string) => ipcRenderer.invoke(IPC_CHANNELS.TRANSLATE_DETECT, text),
+  processOcrImage: (imageBuffer: string): Promise<OCRResult> => 
+    ipcRenderer.invoke(IPC_CHANNELS.OCR_PROCESS_IMAGE, imageBuffer),
+
+  // History & Statistics
+  getHistory: (limit?: number) => ipcRenderer.invoke(IPC_CHANNELS.HISTORY_GET, limit),
+  clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.HISTORY_CLEAR),
+  getStatistics: () => ipcRenderer.invoke(IPC_CHANNELS.STATS_GET),
+  recordStudySession: (type: 'chinese' | 'english' | 'listening' | 'speaking', minutes: number) => 
+    ipcRenderer.invoke(IPC_CHANNELS.STATS_RECORD_SESSION, { type, minutes }),
+
+  // AI & Linguistic Analysis
+  analyzeSentence: (params: { sentence: string; targetLang?: string; nativeLang?: string }) => 
+    ipcRenderer.invoke(IPC_CHANNELS.AI_ANALYZE_SENTENCE, params),
+  explainGrammar: (params: { text: string; point?: string }) => 
+    ipcRenderer.invoke(IPC_CHANNELS.AI_EXPLAIN_GRAMMAR, params),
+  chatWithAiTutor: (params: { messages: Array<{ role: string; content: string }>; topic?: string; level?: string }) => 
+    ipcRenderer.invoke(IPC_CHANNELS.AI_CONVERSATION_CHAT, params),
+  evaluateSpeech: (params: { targetText: string; spokenText: string; lang: string }) => 
+    ipcRenderer.invoke(IPC_CHANNELS.AI_EVALUATE_SPEECH, params),
+
+  // Subtitles
+  sendSubtitleEntry: (entry: { original: string; pinyin?: string; translation: string }) => 
+    ipcRenderer.send(IPC_CHANNELS.SUBTITLE_NEW_ENTRY, entry),
+  openSubtitleOverlay: () => ipcRenderer.send('subtitle:open-overlay'),
+
+  // Event Listeners (Main -> Renderer)
+  onClipboardText: (callback: (text: string) => void) => {
+    const handler = (_: any, text: string) => callback(text);
+    ipcRenderer.on(IPC_CHANNELS.EVENT_CLIPBOARD_TEXT, handler);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.EVENT_CLIPBOARD_TEXT, handler);
+    };
+  },
+  onOverlayData: (callback: (data: TranslationResponse) => void) => {
+    const handler = (_: any, data: TranslationResponse) => callback(data);
+    ipcRenderer.on(IPC_CHANNELS.EVENT_OVERLAY_DATA, handler);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.EVENT_OVERLAY_DATA, handler);
+    };
+  },
+  onSubtitleData: (callback: (data: any) => void) => {
+    const handler = (_: any, data: any) => callback(data);
+    ipcRenderer.on(IPC_CHANNELS.EVENT_SUBTITLE_DATA, handler);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.EVENT_SUBTITLE_DATA, handler);
+    };
+  },
+  onSnipStart: (callback: (data: { screenshotUrl: string; displayWidth: number; displayHeight: number }) => void) => {
+    const handler = (_: any, data: any) => callback(data);
+    ipcRenderer.on(IPC_CHANNELS.EVENT_SNIP_START, handler);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.EVENT_SNIP_START, handler);
+    };
+  },
+  onNavigate: (callback: (route: string) => void) => {
+    const handler = (_: any, route: string) => callback(route);
+    ipcRenderer.on('route:navigate', handler);
+    return () => {
+      ipcRenderer.removeListener('route:navigate', handler);
+    };
+  },
+};
+
+contextBridge.exposeInMainWorld('electronAPI', electronAPI);

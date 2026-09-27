@@ -1,0 +1,258 @@
+import { ipcMain, app, BrowserWindow } from 'electron';
+import { IPC_CHANNELS } from '../../shared/constants/ipc';
+import { DatabaseService } from '../../database';
+import { VocabularyRepository } from '../../database/repositories/vocabularyRepository';
+import { FlashcardRepository } from '../../database/repositories/flashcardRepository';
+import { HistoryRepository } from '../../database/repositories/historyRepository';
+import { SettingsRepository } from '../../database/repositories/settingsRepository';
+import { StatisticsRepository } from '../../database/repositories/statisticsRepository';
+import { TranslationManager } from '../../providers/translation';
+import { OcrManager } from '../../providers/ocr';
+import { AiManager } from '../../providers/ai';
+import { ScreenService, CropRect } from '../services/screenService';
+import { SnipWindowManager } from '../windows/snipWindow';
+import { OverlayWindowManager } from '../windows/overlayWindow';
+import { SubtitleWindowManager } from '../windows/subtitleWindow';
+import { ShortcutService } from '../services/shortcutService';
+import { ClipboardService } from '../services/clipboardService';
+
+export function setupIpcHandlers() {
+  const vocabRepo = new VocabularyRepository();
+  const flashcardRepo = new FlashcardRepository();
+  const historyRepo = new HistoryRepository();
+  const settingsRepo = new SettingsRepository();
+  const statsRepo = new StatisticsRepository();
+
+  const aiManager = new AiManager();
+  const transManager = new TranslationManager(aiManager);
+  const ocrManager = new OcrManager();
+
+  // Load and apply initial settings
+  const currentSettings = settingsRepo.getSettings();
+  aiManager.updateConfig(currentSettings.providers);
+  ocrManager.updateConfig(currentSettings.providers);
+  transManager.setPreferredProvider(currentSettings.providers.translationProvider);
+
+  // App & Window Handlers
+  ipcMain.handle(IPC_CHANNELS.APP_GET_VERSION, () => app.getVersion());
+
+  ipcMain.on(IPC_CHANNELS.APP_MINIMIZE, (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    win?.minimize();
+  });
+
+  ipcMain.on(IPC_CHANNELS.APP_MAXIMIZE, (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win?.isMaximized()) {
+      win.unmaximize();
+    } else {
+      win?.maximize();
+    }
+  });
+
+  ipcMain.on(IPC_CHANNELS.APP_CLOSE, (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    win?.close();
+  });
+
+  ipcMain.on(IPC_CHANNELS.WINDOW_SET_ALWAYS_ON_TOP, (event, flag: boolean) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    win?.setAlwaysOnTop(flag, 'floating');
+  });
+
+  ipcMain.on(IPC_CHANNELS.WINDOW_SET_CLICK_THROUGH, (event, flag: boolean) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+      if (flag) {
+        win.setIgnoreMouseEvents(true, { forward: true });
+      } else {
+        win.setIgnoreMouseEvents(false);
+      }
+    }
+  });
+
+  ipcMain.on(IPC_CHANNELS.WINDOW_SET_OPACITY, (event, opacity: number) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    win?.setOpacity(Math.max(0.2, Math.min(1.0, opacity)));
+  });
+
+  ipcMain.on(IPC_CHANNELS.WINDOW_TRIGGER_SNIP, () => {
+    SnipWindowManager.getInstance().startSnip();
+  });
+
+  ipcMain.on(IPC_CHANNELS.WINDOW_CANCEL_SNIP, () => {
+    SnipWindowManager.getInstance().close();
+  });
+
+  // When user finishes drawing snip rectangle
+  ipcMain.handle(IPC_CHANNELS.WINDOW_COMPLETE_SNIP, async (event, rect: CropRect) => {
+    try {
+      SnipWindowManager.getInstance().close();
+      await new Promise((resolve) => setTimeout(resolve, 80));
+
+      // 1. Crop area
+      const croppedDataUrl = await ScreenService.captureRect(rect);
+
+      // 2. Perform OCR
+      const ocrResult = await ocrManager.recognize(croppedDataUrl);
+      if (!ocrResult.text || !ocrResult.text.trim()) {
+        console.warn('[Snip] No text detected in cropped region.');
+        return null;
+      }
+
+      // 3. Translate
+      const transResult = await transManager.translate({
+        text: ocrResult.text,
+        sourceLang: ocrResult.detectedLang || 'auto',
+        targetLang: 'vi',
+        mode: 'learning',
+      });
+
+      // 4. Record history
+      historyRepo.saveItem({
+        sourceText: transResult.sourceText,
+        sourceLang: transResult.sourceLang,
+        targetText: transResult.translatedText,
+        targetLang: transResult.targetLang,
+        pinyin: transResult.pinyin,
+        sourceType: 'screen',
+        provider: transResult.provider,
+      });
+
+      // 5. Open Floating Translation Overlay at coordinates
+      await OverlayWindowManager.getInstance().showWithData(transResult, rect);
+
+      return transResult;
+    } catch (err: any) {
+      console.error('[Snip] Processing failed:', err);
+      throw err;
+    }
+  });
+
+  // Settings Handlers
+  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, () => {
+    return settingsRepo.getSettings();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.SETTINGS_SAVE, (event, newSettings) => {
+    const updated = settingsRepo.saveSettings(newSettings);
+    // Update active service configs
+    aiManager.updateConfig(updated.providers);
+    ocrManager.updateConfig(updated.providers);
+    transManager.setPreferredProvider(updated.providers.translationProvider);
+    ShortcutService.getInstance().registerShortcuts(updated.hotkeys);
+    ClipboardService.getInstance().setEnabled(updated.general.enableClipboardWatcher);
+    return updated;
+  });
+
+  // Vocabulary Handlers
+  ipcMain.handle(IPC_CHANNELS.VOCAB_GET_ALL, (event, lang?: string) => {
+    return vocabRepo.getAll(lang);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.VOCAB_GET_BY_ID, (event, id: number) => {
+    return vocabRepo.getById(id);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.VOCAB_SEARCH, (event, query: string) => {
+    return vocabRepo.search(query);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.VOCAB_SAVE, (event, item) => {
+    return vocabRepo.save(item);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.VOCAB_DELETE, (event, id: number) => {
+    return vocabRepo.delete(id);
+  });
+
+  // Flashcards & SRS Handlers
+  ipcMain.handle(IPC_CHANNELS.FLASHCARD_GET_DUE, (event, limit?: number) => {
+    return flashcardRepo.getDueCards(limit);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.FLASHCARD_REVIEW, (event, { cardId, rating }) => {
+    return flashcardRepo.review(cardId, rating);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.FLASHCARD_GET_STATS, () => {
+    return flashcardRepo.getStats();
+  });
+
+  // Translation & OCR Handlers
+  ipcMain.handle(IPC_CHANNELS.TRANSLATE_TEXT, async (event, request) => {
+    const result = await transManager.translate(request);
+    // Save to history
+    historyRepo.saveItem({
+      sourceText: result.sourceText,
+      sourceLang: result.sourceLang,
+      targetText: result.translatedText,
+      targetLang: result.targetLang,
+      pinyin: result.pinyin,
+      sourceType: 'manual',
+      provider: result.provider,
+    });
+    return result;
+  });
+
+  ipcMain.handle(IPC_CHANNELS.TRANSLATE_DETECT, async (event, text: string) => {
+    return await transManager.detectLanguage(text);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.OCR_PROCESS_IMAGE, async (event, imageBuffer: string) => {
+    return await ocrManager.recognize(imageBuffer);
+  });
+
+  // Translation History Handlers
+  ipcMain.handle(IPC_CHANNELS.HISTORY_GET, (event, limit?: number) => {
+    return historyRepo.getHistory(limit);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.HISTORY_SAVE, (event, item) => {
+    return historyRepo.saveItem(item);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.HISTORY_CLEAR, () => {
+    historyRepo.clear();
+    return true;
+  });
+
+  // Statistics Handlers
+  ipcMain.handle(IPC_CHANNELS.STATS_GET, () => {
+    return {
+      history: statsRepo.getStats(14),
+      summary: statsRepo.getSummary(),
+    };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.STATS_RECORD_SESSION, (event, { type, minutes }) => {
+    statsRepo.recordStudyTime(type, minutes);
+    return true;
+  });
+
+  // AI & Analysis Handlers
+  ipcMain.handle(IPC_CHANNELS.AI_ANALYZE_SENTENCE, async (event, { sentence, targetLang, nativeLang }) => {
+    return await aiManager.analyzeSentence(sentence, targetLang, nativeLang);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.AI_EXPLAIN_GRAMMAR, async (event, { text, point }) => {
+    return await aiManager.explainGrammar(text, point);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.AI_CONVERSATION_CHAT, async (event, { messages, topic, level }) => {
+    return await aiManager.chat(messages, { topic, level });
+  });
+
+  ipcMain.handle(IPC_CHANNELS.AI_EVALUATE_SPEECH, async (event, { targetText, spokenText, lang }) => {
+    return await aiManager.evaluateSpeech(targetText, spokenText, lang);
+  });
+
+  // Subtitle Handlers
+  ipcMain.on(IPC_CHANNELS.SUBTITLE_NEW_ENTRY, (event, entry) => {
+    SubtitleWindowManager.getInstance().sendSubtitle(entry);
+  });
+
+  ipcMain.on('subtitle:open-overlay', () => {
+    SubtitleWindowManager.getInstance().toggleWindow();
+  });
+}

@@ -1,0 +1,74 @@
+{
+  "name": "polyglot-desktop",
+  "version": "1.0.0",
+  "description": "AI-Powered Cross-Platform Desktop Language Learning Companion for Vietnamese Speakers",
+  "main": "dist-electron/main/index.js",
+  "author": "Google DeepMind / Antigravity",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently -k \"npm run dev:renderer\" \"npm run dev:electron\"",
+    "dev:renderer": "vite",
+    "dev:electron": "tsup src/main/index.ts src/preload/index.ts --format cjs --out-dir dist-electron --external electron --watch --onSuccess \"node scripts/copy-wasm.js && electron .\"",
+    "build:renderer": "vite build",
+    "build:electron": "tsup src/main/index.ts src/preload/index.ts --format cjs --out-dir dist-electron --external electron && node scripts/copy-wasm.js",
+    "build": "npm run build:renderer && npm run build:electron",
+    "dist": "npm run build && electron-builder",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "build": {
+    "appId": "com.polyglot.desktop",
+    "productName": "PolyglotDesktop",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.104.0",
+    "@types/sql.js": "^1.4.11",
+    "better-sqlite3": "^13.0.3",
+    "clsx": "^2.1.1",
+    "dotenv": "^18.0.4",
+    "lucide-react": "^1.48.0",
+    "pinyin-pro": "^3.29.4",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4",
+    "sql.js": "^1.14.2",
+    "tailwind-merge": "^3.7.0",
+    "tesseract.js": "^7.0.0",
+    "zod": "^4.6.5",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "autoprefixer": "^10.6.1",
+    "concurrently": "^10.0.5",
+    "cross-env": "^10.1.0",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^3.4.19",
+    "tsup": "^8.5.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  }
+}
