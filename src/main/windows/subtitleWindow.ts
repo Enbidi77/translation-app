@@ -2,9 +2,20 @@ import { BrowserWindow, screen, app } from 'electron';
 import path from 'path';
 import { IPC_CHANNELS } from '../../shared/constants/ipc';
 
+export interface SubtitleDataEntry {
+  original: string;
+  pinyin?: string;
+  translation: string;
+}
+
 export class SubtitleWindowManager {
   private static instance: SubtitleWindowManager | null = null;
   private window: BrowserWindow | null = null;
+  private currentEntry: SubtitleDataEntry = {
+    original: '你好，很高兴认识你！',
+    pinyin: 'nǐ hǎo, hěn gāoxìng rènshí nǐ!',
+    translation: 'Xin chào, rất vui được làm quen với bạn!',
+  };
 
   public static getInstance(): SubtitleWindowManager {
     if (!SubtitleWindowManager.instance) {
@@ -17,33 +28,73 @@ export class SubtitleWindowManager {
     return this.window;
   }
 
-  public async toggleWindow(): Promise<void> {
+  public isOpen(): boolean {
+    return Boolean(this.window && !this.window.isDestroyed() && this.window.isVisible());
+  }
+
+  public getCurrentEntry(): SubtitleDataEntry {
+    return this.currentEntry;
+  }
+
+  public async showWindow(): Promise<void> {
+    if (!this.window || this.window.isDestroyed()) {
+      await this.createWindow();
+      return;
+    }
+    if (!this.window.isVisible()) {
+      this.window.show();
+    }
+    this.window.focus();
+    if (this.currentEntry) {
+      this.window.webContents.send(IPC_CHANNELS.EVENT_SUBTITLE_DATA, this.currentEntry);
+    }
+  }
+
+  public hideWindow(): void {
+    if (this.window && !this.window.isDestroyed() && this.window.isVisible()) {
+      this.window.hide();
+    }
+  }
+
+  public async toggleWindow(): Promise<boolean> {
     if (this.window && !this.window.isDestroyed()) {
       if (this.window.isVisible()) {
         this.window.hide();
+        return false;
       } else {
         this.window.show();
+        this.window.focus();
+        if (this.currentEntry) {
+          this.window.webContents.send(IPC_CHANNELS.EVENT_SUBTITLE_DATA, this.currentEntry);
+        }
+        return true;
       }
-      return;
     }
     await this.createWindow();
+    return true;
   }
 
   public async createWindow(): Promise<BrowserWindow> {
+    if (this.window && !this.window.isDestroyed()) {
+      this.window.show();
+      this.window.focus();
+      return this.window;
+    }
+
     const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
     const primaryDisplay = screen.getPrimaryDisplay();
     const bounds = primaryDisplay.workArea;
 
-    const width = 840;
+    const width = Math.min(880, Math.max(520, Math.round(bounds.width * 0.6)));
     const height = 180;
     const x = Math.round((bounds.width - width) / 2);
-    const y = Math.round(bounds.height - height - 60);
+    const y = Math.round(bounds.height - height - 50);
 
     this.window = new BrowserWindow({
       width,
       height,
       minWidth: 400,
-      minHeight: 100,
+      minHeight: 110,
       x,
       y,
       frame: false,
@@ -60,13 +111,24 @@ export class SubtitleWindowManager {
       },
     });
 
-    this.window.setAlwaysOnTop(true, 'screen-saver');
+    this.window.setAlwaysOnTop(true, 'floating');
 
     const targetUrl = isDev 
       ? 'http://localhost:5173/#/subtitle'
+      : `file://${path.join(__dirname)}../../dist/index.html#/subtitle`;
+
+    const normalizedUrl = isDev 
+      ? 'http://localhost:5173/#/subtitle'
       : `file://${path.join(__dirname, '../../dist/index.html')}#/subtitle`;
 
-    await this.window.loadURL(targetUrl);
+    await this.window.loadURL(normalizedUrl);
+
+    this.window.webContents.once('did-finish-load', () => {
+      if (this.currentEntry) {
+        this.window?.webContents.send(IPC_CHANNELS.EVENT_SUBTITLE_DATA, this.currentEntry);
+      }
+      this.window?.show();
+    });
 
     this.window.on('closed', () => {
       this.window = null;
@@ -75,10 +137,21 @@ export class SubtitleWindowManager {
     return this.window;
   }
 
-  public sendSubtitle(entry: { original: string; pinyin?: string; translation: string }): void {
-    if (this.window && !this.window.isDestroyed()) {
-      this.window.webContents.send(IPC_CHANNELS.EVENT_SUBTITLE_DATA, entry);
+  public async sendSubtitle(entry: SubtitleDataEntry, autoShow: boolean = false): Promise<void> {
+    this.currentEntry = entry;
+
+    if (!this.window || this.window.isDestroyed()) {
+      if (autoShow) {
+        await this.createWindow();
+      }
+      return;
     }
+
+    if (!this.window.isVisible() && autoShow) {
+      this.window.show();
+    }
+
+    this.window.webContents.send(IPC_CHANNELS.EVENT_SUBTITLE_DATA, entry);
   }
 
   public setClickThrough(enable: boolean): void {

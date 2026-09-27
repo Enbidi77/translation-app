@@ -98,9 +98,14 @@ export const electronAPI = {
     ipcRenderer.invoke(IPC_CHANNELS.AI_EVALUATE_SPEECH, params),
 
   // Subtitles
-  sendSubtitleEntry: (entry: { original: string; pinyin?: string; translation: string }) => 
-    ipcRenderer.send(IPC_CHANNELS.SUBTITLE_NEW_ENTRY, entry),
-  openSubtitleOverlay: () => ipcRenderer.send('subtitle:open-overlay'),
+  sendSubtitleEntry: (entry: { original: string; pinyin?: string; translation: string }, autoShow?: boolean) => 
+    ipcRenderer.invoke('subtitle:broadcast', entry, autoShow),
+  openSubtitleOverlay: () => ipcRenderer.invoke('subtitle:show'),
+  toggleSubtitleOverlay: (): Promise<boolean> => ipcRenderer.invoke('subtitle:toggle'),
+  hideSubtitleOverlay: () => ipcRenderer.invoke('subtitle:hide'),
+  isSubtitleOverlayOpen: (): Promise<boolean> => ipcRenderer.invoke('subtitle:is-open'),
+  getCurrentSubtitle: (): Promise<{ original: string; pinyin?: string; translation: string }> => 
+    ipcRenderer.invoke('subtitle:get-current'),
 
   // Event Listeners (Main -> Renderer)
   onClipboardText: (callback: (text: string) => void) => {

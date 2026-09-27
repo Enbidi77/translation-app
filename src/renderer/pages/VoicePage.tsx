@@ -328,7 +328,7 @@ export const VoicePage: React.FC = () => {
             original: res.transcript,
             pinyin: res.pinyin,
             translation: res.translation || '',
-          });
+          }, true);
 
           // Add to session history
           const newItem: VoiceSessionItem = {
@@ -470,7 +470,7 @@ export const VoicePage: React.FC = () => {
       original: item.text,
       pinyin: item.pinyin,
       translation: item.translation,
-    });
+    }, true);
 
     // Add to session history
     const newItem: VoiceSessionItem = {

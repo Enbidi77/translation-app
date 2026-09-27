@@ -329,7 +329,34 @@ export function setupIpcHandlers() {
 
   // Subtitle Handlers
   ipcMain.on(IPC_CHANNELS.SUBTITLE_NEW_ENTRY, (event, entry) => {
-    SubtitleWindowManager.getInstance().sendSubtitle(entry);
+    SubtitleWindowManager.getInstance().sendSubtitle(entry, false);
+  });
+
+  ipcMain.handle('subtitle:broadcast', async (event, entry, autoShow?: boolean) => {
+    await SubtitleWindowManager.getInstance().sendSubtitle(entry, autoShow ?? false);
+    return true;
+  });
+
+  ipcMain.handle('subtitle:get-current', () => {
+    return SubtitleWindowManager.getInstance().getCurrentEntry();
+  });
+
+  ipcMain.handle('subtitle:is-open', () => {
+    return SubtitleWindowManager.getInstance().isOpen();
+  });
+
+  ipcMain.handle('subtitle:show', async () => {
+    await SubtitleWindowManager.getInstance().showWindow();
+    return true;
+  });
+
+  ipcMain.handle('subtitle:hide', () => {
+    SubtitleWindowManager.getInstance().hideWindow();
+    return true;
+  });
+
+  ipcMain.handle('subtitle:toggle', async () => {
+    return await SubtitleWindowManager.getInstance().toggleWindow();
   });
 
   ipcMain.on('subtitle:open-overlay', () => {
