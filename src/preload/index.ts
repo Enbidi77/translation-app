@@ -150,6 +150,38 @@ export const electronAPI = {
       ipcRenderer.removeListener(IPC_CHANNELS.EVENT_THEME_UPDATED, handler);
     };
   },
+
+  // Production-Grade Logging & Monitoring
+  logger: {
+    trace: (message: string, context?: any) =>
+      ipcRenderer.invoke(IPC_CHANNELS.LOGS_CREATE, { level: 'trace', message, source: 'renderer', ...context }),
+    debug: (message: string, context?: any) =>
+      ipcRenderer.invoke(IPC_CHANNELS.LOGS_CREATE, { level: 'debug', message, source: 'renderer', ...context }),
+    info: (message: string, context?: any) =>
+      ipcRenderer.invoke(IPC_CHANNELS.LOGS_CREATE, { level: 'info', message, source: 'renderer', ...context }),
+    warn: (message: string, context?: any) =>
+      ipcRenderer.invoke(IPC_CHANNELS.LOGS_CREATE, { level: 'warn', message, source: 'renderer', ...context }),
+    error: (message: string, context?: any) =>
+      ipcRenderer.invoke(IPC_CHANNELS.LOGS_CREATE, { level: 'error', message, source: 'renderer', ...context }),
+    fatal: (message: string, context?: any) =>
+      ipcRenderer.invoke(IPC_CHANNELS.LOGS_CREATE, { level: 'fatal', message, source: 'renderer', ...context }),
+  },
+  getLogs: (filter?: any) => ipcRenderer.invoke(IPC_CHANNELS.LOGS_LIST, filter),
+  getLogById: (id: number) => ipcRenderer.invoke(IPC_CHANNELS.LOGS_GET, id),
+  getLogStats: (timeRange?: any) => ipcRenderer.invoke(IPC_CHANNELS.LOGS_STATS, timeRange),
+  clearLogs: (options?: any) => ipcRenderer.invoke(IPC_CHANNELS.LOGS_CLEAR, options),
+  deleteLogsOlderThan: (days: number) => ipcRenderer.invoke(IPC_CHANNELS.LOGS_DELETE_OLDER_THAN, days),
+  exportLogs: (options: any) => ipcRenderer.invoke(IPC_CHANNELS.LOGS_EXPORT, options),
+  getLogConfig: () => ipcRenderer.invoke(IPC_CHANNELS.LOGS_GET_CONFIG),
+  updateLogConfig: (config: any) => ipcRenderer.invoke(IPC_CHANNELS.LOGS_UPDATE_CONFIG, config),
+  onNewLog: (callback: (log: any) => void) => {
+    const handler = (_: any, data: any) => callback(data);
+    ipcRenderer.on(IPC_CHANNELS.EVENT_LOG_NEW, handler);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.EVENT_LOG_NEW, handler);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
+contextBridge.exposeInMainWorld('electron', { logger: electronAPI.logger });

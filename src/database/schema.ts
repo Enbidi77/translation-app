@@ -174,4 +174,38 @@ CREATE TABLE IF NOT EXISTS settings (
   value TEXT NOT NULL,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Structured Application Logs
+CREATE TABLE IF NOT EXISTS logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  timestamp INTEGER NOT NULL,
+  level TEXT NOT NULL,
+  severity INTEGER NOT NULL,
+  message TEXT NOT NULL,
+  category TEXT,
+  source TEXT,
+  module TEXT,
+  event TEXT,
+  request_id TEXT,
+  session_id TEXT,
+  user_action TEXT,
+  duration_ms INTEGER,
+  status TEXT,
+  error_name TEXT,
+  error_message TEXT,
+  error_stack TEXT,
+  metadata TEXT,
+  created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_logs_level ON logs(level);
+CREATE INDEX IF NOT EXISTS idx_logs_severity ON logs(severity);
+CREATE INDEX IF NOT EXISTS idx_logs_category ON logs(category);
+CREATE INDEX IF NOT EXISTS idx_logs_source ON logs(source);
+CREATE INDEX IF NOT EXISTS idx_logs_module ON logs(module);
+CREATE INDEX IF NOT EXISTS idx_logs_event ON logs(event);
+CREATE INDEX IF NOT EXISTS idx_logs_request_id ON logs(request_id);
+CREATE INDEX IF NOT EXISTS idx_logs_session_id ON logs(session_id);
+CREATE INDEX IF NOT EXISTS idx_logs_timestamp_severity ON logs(timestamp, severity);
 `;

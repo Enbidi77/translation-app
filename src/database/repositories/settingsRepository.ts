@@ -28,6 +28,7 @@ export class SettingsRepository {
       hotkeys: { ...DEFAULT_SETTINGS.hotkeys, ...(loadedSettings.hotkeys || {}) },
       providers: { ...DEFAULT_SETTINGS.providers, ...(loadedSettings.providers || {}) },
       subtitles: { ...DEFAULT_SETTINGS.subtitles, ...(loadedSettings.subtitles || {}) },
+      logging: { ...DEFAULT_SETTINGS.logging, ...(loadedSettings.logging || {}) },
     };
   }
 
@@ -39,9 +40,10 @@ export class SettingsRepository {
       hotkeys: { ...current.hotkeys, ...(settings.hotkeys || {}) },
       providers: { ...current.providers, ...(settings.providers || {}) },
       subtitles: { ...current.subtitles, ...(settings.subtitles || {}) },
+      logging: { ...current.logging, ...(settings.logging || {}) },
     };
 
-    const keys: (keyof AppSettings)[] = ['general', 'pinyin', 'hotkeys', 'providers', 'subtitles'];
+    const keys: (keyof AppSettings)[] = ['general', 'pinyin', 'hotkeys', 'providers', 'subtitles', 'logging'];
     for (const key of keys) {
       this.db.run(
         `INSERT INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)

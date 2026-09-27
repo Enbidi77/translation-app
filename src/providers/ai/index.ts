@@ -3,6 +3,8 @@ import { SentenceAnalysis } from '../../shared/types';
 import { GeminiAiProvider } from './geminiAiProvider';
 import { OpenAiProvider } from './openaiAiProvider';
 import { PinyinService } from '../translation/pinyinService';
+import { logger } from '../../main/logging/logger';
+import { generateRequestId } from '../../main/logging/log-context';
 
 export class AiManager {
   private geminiProvider: GeminiAiProvider;
@@ -42,11 +44,40 @@ export class AiManager {
 
   public async analyzeSentence(sentence: string, targetLang = 'zh', nativeLang = 'vi'): Promise<SentenceAnalysis> {
     const provider = this.getActiveProvider();
+    const requestId = generateRequestId('ai_sentence');
+    const start = Date.now();
+
     if (provider) {
       try {
-        return await provider.analyzeSentence(sentence, targetLang, nativeLang);
+        const res = await provider.analyzeSentence(sentence, targetLang, nativeLang);
+        logger.info('AI sentence analysis completed', {
+          category: 'ai',
+          module: 'ai-manager',
+          event: 'ai_request_completed',
+          requestId,
+          durationMs: Date.now() - start,
+          status: 'success',
+          metadata: {
+            provider: this.activeProviderName,
+            operation: 'analyze_sentence',
+            inputCharacters: sentence.length,
+          },
+        });
+        return res;
       } catch (err: any) {
-        console.warn('[AiManager] Online sentence analysis failed, falling back to local heuristic:', err.message);
+        logger.warn('AI sentence analysis failed, falling back to local heuristic', {
+          category: 'ai',
+          module: 'ai-manager',
+          event: 'ai_request_failed',
+          requestId,
+          durationMs: Date.now() - start,
+          status: 'failed',
+          error: err,
+          metadata: {
+            provider: this.activeProviderName,
+            operation: 'analyze_sentence',
+          },
+        });
       }
     }
 
@@ -56,11 +87,40 @@ export class AiManager {
 
   public async explainGrammar(text: string, point?: string): Promise<{ explanation: string; examples: string[] }> {
     const provider = this.getActiveProvider();
+    const requestId = generateRequestId('ai_grammar');
+    const start = Date.now();
+
     if (provider) {
       try {
-        return await provider.explainGrammar(text, point);
+        const res = await provider.explainGrammar(text, point);
+        logger.info('AI grammar explanation completed', {
+          category: 'ai',
+          module: 'ai-manager',
+          event: 'ai_request_completed',
+          requestId,
+          durationMs: Date.now() - start,
+          status: 'success',
+          metadata: {
+            provider: this.activeProviderName,
+            operation: 'explain_grammar',
+            inputCharacters: text.length,
+          },
+        });
+        return res;
       } catch (err: any) {
-        console.warn('[AiManager] Online grammar explanation failed, falling back to local heuristic:', err.message);
+        logger.warn('AI grammar explanation failed, falling back to local heuristic', {
+          category: 'ai',
+          module: 'ai-manager',
+          event: 'ai_request_failed',
+          requestId,
+          durationMs: Date.now() - start,
+          status: 'failed',
+          error: err,
+          metadata: {
+            provider: this.activeProviderName,
+            operation: 'explain_grammar',
+          },
+        });
       }
     }
 
@@ -69,17 +129,50 @@ export class AiManager {
 
   public async chat(messages: Array<{ role: string; content: string }>, options?: { topic?: string; level?: string }): Promise<any> {
     const provider = this.getActiveProvider();
+    const requestId = generateRequestId('ai_chat');
+    const start = Date.now();
+
     if (provider) {
-      const res = await provider.chat(messages, options);
       try {
-        return JSON.parse(res);
-      } catch {
-        return {
-          reply: res,
-          pinyin: PinyinService.getPinyin(res),
-          vietnameseTranslation: '',
-          feedback: null,
-        };
+        const res = await provider.chat(messages, options);
+        logger.info('AI chat completed', {
+          category: 'ai',
+          module: 'ai-manager',
+          event: 'ai_request_completed',
+          requestId,
+          durationMs: Date.now() - start,
+          status: 'success',
+          metadata: {
+            provider: this.activeProviderName,
+            operation: 'chat',
+            messageCount: messages.length,
+            outputCharacters: res.length,
+          },
+        });
+        try {
+          return JSON.parse(res);
+        } catch {
+          return {
+            reply: res,
+            pinyin: PinyinService.getPinyin(res),
+            vietnameseTranslation: '',
+            feedback: null,
+          };
+        }
+      } catch (err) {
+        logger.error('AI chat request failed', {
+          category: 'ai',
+          module: 'ai-manager',
+          event: 'ai_request_failed',
+          requestId,
+          durationMs: Date.now() - start,
+          status: 'failed',
+          error: err,
+          metadata: {
+            provider: this.activeProviderName,
+            operation: 'chat',
+          },
+        });
       }
     }
 
@@ -96,11 +189,35 @@ export class AiManager {
 
   public async evaluateSpeech(targetText: string, spokenText: string, lang: string) {
     const provider = this.getActiveProvider();
+    const requestId = generateRequestId('ai_speech');
+    const start = Date.now();
+
     if (provider) {
       try {
-        return await provider.evaluatePronunciation(targetText, spokenText, lang);
+        const res = await provider.evaluatePronunciation(targetText, spokenText, lang);
+        logger.info('AI speech evaluation completed', {
+          category: 'ai',
+          module: 'ai-manager',
+          event: 'ai_request_completed',
+          requestId,
+          durationMs: Date.now() - start,
+          status: 'success',
+          metadata: {
+            provider: this.activeProviderName,
+            operation: 'evaluate_speech',
+          },
+        });
+        return res;
       } catch (err: any) {
-        console.warn('[AiManager] Speech evaluation failed:', err.message);
+        logger.warn('AI speech evaluation failed, using offline fallback', {
+          category: 'ai',
+          module: 'ai-manager',
+          event: 'ai_request_failed',
+          requestId,
+          durationMs: Date.now() - start,
+          status: 'failed',
+          error: err,
+        });
       }
     }
 

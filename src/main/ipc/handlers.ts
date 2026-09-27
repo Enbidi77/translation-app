@@ -17,8 +17,35 @@ import { ShortcutService } from '../services/shortcutService';
 import { ClipboardService } from '../services/clipboardService';
 import { TtsService } from '../services/ttsService';
 import { SttService } from '../services/sttService';
+import { registerLogIpcHandlers } from './logHandlers';
+import { logger } from '../logging/logger';
+
+function logIpcCall(channel: string, start: number, success: boolean, error?: any) {
+  const durationMs = Date.now() - start;
+  if (success) {
+    logger.debug(`IPC: ${channel} completed`, {
+      category: 'ipc',
+      source: 'ipc',
+      event: 'ipc_completed',
+      durationMs,
+      status: 'success',
+      metadata: { channel },
+    });
+  } else {
+    logger.error(`IPC: ${channel} failed`, {
+      category: 'ipc',
+      source: 'ipc',
+      event: 'ipc_failed',
+      durationMs,
+      status: 'failed',
+      error,
+      metadata: { channel },
+    });
+  }
+}
 
 export function setupIpcHandlers() {
+  registerLogIpcHandlers();
   const ttsService = TtsService.getInstance();
   const sttService = SttService.getInstance();
   const vocabRepo = new VocabularyRepository();
@@ -229,11 +256,27 @@ export function setupIpcHandlers() {
   });
 
   ipcMain.handle(IPC_CHANNELS.VOCAB_SAVE, (event, item) => {
-    return vocabRepo.save(item);
+    const start = Date.now();
+    try {
+      const res = vocabRepo.save(item);
+      logIpcCall(IPC_CHANNELS.VOCAB_SAVE, start, true);
+      return res;
+    } catch (err) {
+      logIpcCall(IPC_CHANNELS.VOCAB_SAVE, start, false, err);
+      throw err;
+    }
   });
 
   ipcMain.handle(IPC_CHANNELS.VOCAB_DELETE, (event, id: number) => {
-    return vocabRepo.delete(id);
+    const start = Date.now();
+    try {
+      const res = vocabRepo.delete(id);
+      logIpcCall(IPC_CHANNELS.VOCAB_DELETE, start, true);
+      return res;
+    } catch (err) {
+      logIpcCall(IPC_CHANNELS.VOCAB_DELETE, start, false, err);
+      throw err;
+    }
   });
 
   // Flashcards & SRS Handlers
@@ -242,7 +285,15 @@ export function setupIpcHandlers() {
   });
 
   ipcMain.handle(IPC_CHANNELS.FLASHCARD_REVIEW, (event, { cardId, rating }) => {
-    return flashcardRepo.review(cardId, rating);
+    const start = Date.now();
+    try {
+      const res = flashcardRepo.review(cardId, rating);
+      logIpcCall(IPC_CHANNELS.FLASHCARD_REVIEW, start, true);
+      return res;
+    } catch (err) {
+      logIpcCall(IPC_CHANNELS.FLASHCARD_REVIEW, start, false, err);
+      throw err;
+    }
   });
 
   ipcMain.handle(IPC_CHANNELS.FLASHCARD_GET_STATS, () => {

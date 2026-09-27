@@ -14,6 +14,7 @@ import {
   History,
   BarChart3,
   Settings,
+  ScrollText,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -43,6 +44,7 @@ export const Sidebar: React.FC = () => {
     { to: '/ai-tutor', label: dict.sidebar.aiTutor, icon: Bot },
     { to: '/history', label: dict.sidebar.history, icon: History },
     { to: '/statistics', label: dict.sidebar.statistics, icon: BarChart3 },
+    { to: '/logs', label: dict.sidebar.logs, icon: ScrollText },
     { to: '/settings', label: dict.sidebar.settings, icon: Settings },
   ];
 

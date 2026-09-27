@@ -165,6 +165,9 @@ export interface TranslationHistoryItem {
   createdAt: string;
 }
 
+import { LoggingConfig } from './logging';
+export * from './logging';
+
 export interface AppSettings {
   general: {
     nativeLanguage: SupportedLanguage;
@@ -209,6 +212,7 @@ export interface AppSettings {
     maxLines: number;
     subtitleTheme?: 'follow_app' | 'dark' | 'light' | 'transparent';
   };
+  logging: LoggingConfig;
 }
 
 export interface LearningStatistics {

@@ -15,6 +15,7 @@ export const zh = {
     history: '查询历史',
     statistics: '学习统计',
     settings: '系统设置',
+    logs: '运行日志与监控',
     collapse: '折叠菜单',
   },
   dashboard: {

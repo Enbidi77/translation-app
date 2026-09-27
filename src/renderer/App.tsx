@@ -20,6 +20,9 @@ import { AiTutorPage } from './pages/AiTutorPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { StatisticsPage } from './pages/StatisticsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { LogsPage } from './pages/LogsPage';
+import { AppErrorBoundary } from './components/common/AppErrorBoundary';
+import { setupRendererErrorHandlers } from './services/logger-client';
 
 // Window Overlays
 import { SnipOverlay } from './windows/SnipOverlay';
@@ -33,6 +36,7 @@ const AppLayout: React.FC = () => {
   const { fetchSettings, initTheme } = useSettingsStore();
 
   useEffect(() => {
+    setupRendererErrorHandlers();
     fetchSettings();
     const unsubTheme = initTheme();
 
@@ -88,6 +92,7 @@ const AppLayout: React.FC = () => {
             <Route path="/ai-tutor" element={<AiTutorPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/statistics" element={<StatisticsPage />} />
+            <Route path="/logs" element={<LogsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </main>
@@ -120,8 +125,10 @@ const AppLayout: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <HashRouter>
-      <AppLayout />
-    </HashRouter>
+    <AppErrorBoundary>
+      <HashRouter>
+        <AppLayout />
+      </HashRouter>
+    </AppErrorBoundary>
   );
 };

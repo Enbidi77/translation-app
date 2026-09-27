@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Settings, 
   Key, 
@@ -13,7 +14,12 @@ import {
   Moon,
   Monitor,
   Palette,
-  Subtitles
+  Subtitles,
+  ScrollText,
+  ExternalLink,
+  Terminal,
+  Activity,
+  AlertTriangle
 } from 'lucide-react';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { useAppStore } from '../stores/useAppStore';
@@ -22,11 +28,12 @@ import { ThemeMode, SubtitleThemeMode } from '../../shared/design/theme';
 import { ThemePreviewCard } from '../components/common/ThemePreviewCard';
 
 export const SettingsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { dict, settings, updateSettings, themeMode, setThemeMode, subtitleTheme, setSubtitleTheme, effectiveTheme } = useSettingsStore();
   const { showToast } = useAppStore();
 
   const [form, setForm] = useState<AppSettings>(settings);
-  const [activeTab, setActiveTab] = useState<'general' | 'appearance' | 'providers' | 'hotkeys' | 'privacy'>('appearance');
+  const [activeTab, setActiveTab] = useState<'general' | 'appearance' | 'providers' | 'hotkeys' | 'privacy' | 'logging'>('appearance');
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -34,6 +41,9 @@ export const SettingsPage: React.FC = () => {
     setIsSaving(true);
     try {
       await updateSettings(form);
+      if (window.electronAPI?.updateLogConfig && form.logging) {
+        await window.electronAPI.updateLogConfig(form.logging);
+      }
       showToast(dict.settings.saveSuccess, 'success');
     } catch (err: any) {
       showToast(`Lỗi lưu cài đặt: ${err.message}`, 'error');
@@ -131,6 +141,18 @@ export const SettingsPage: React.FC = () => {
             }`}
           >
             {dict.settings.privacy}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('logging')}
+            className={`px-4 py-2 rounded-2xl transition-all flex items-center gap-1.5 ${
+              activeTab === 'logging' 
+                ? 'bg-primary text-primary-foreground shadow-google-sm font-semibold' 
+                : 'text-foreground-secondary hover:text-foreground hover:bg-surface-hover'
+            }`}
+          >
+            <ScrollText className="w-3.5 h-3.5" />
+            <span>Nhật ký & Giám sát</span>
           </button>
         </div>
 
@@ -606,6 +628,274 @@ export const SettingsPage: React.FC = () => {
                 <li>Micro chỉ được kích hoạt khi bạn bấm nút ghi âm và có đèn báo hiệu rõ ràng trên giao diện.</li>
                 <li>API Keys được lưu trữ an toàn trong tệp cấu hình máy tính cá nhân của bạn.</li>
               </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Tab: Logging & Monitoring */}
+        {activeTab === 'logging' && (
+          <div className="space-y-6">
+            {/* Quick Banner & Open Log Viewer button */}
+            <div className="p-5 bg-card border border-border rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-google-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-primary-muted text-primary flex items-center justify-center border border-primary/20">
+                  <ScrollText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Trình xem & Phân tích nhật ký hệ thống</h3>
+                  <p className="text-[11px] text-foreground-secondary">
+                    Kiểm tra chi tiết lỗi, hiệu năng, phân tích provider AI và giám sát thời gian thực.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate('/logs')}
+                className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary text-primary-foreground font-semibold text-xs shadow-google-sm hover:opacity-90 transition-all shrink-0"
+              >
+                <span>Mở Trình xem Logs</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Developer Mode Banner */}
+            {form.logging?.developerMode && (
+              <div className="p-4 bg-warning-muted/40 border border-warning/40 rounded-2xl flex items-center gap-3 text-xs text-warning">
+                <AlertTriangle className="w-5 h-5 shrink-0" />
+                <div>
+                  <span className="font-bold">Chế độ nhà phát triển (Developer Mode) đang được BẬT.</span>
+                  <p className="text-[11px] text-warning/90 mt-0.5">
+                    Hệ thống sẽ ghi nhận chi tiết mức độ DEBUG, chuẩn đoán provider AI, luồng IPC và dữ liệu hiệu năng chuyên sâu.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* General Logging Settings */}
+            <div className="p-6 bg-card border border-border rounded-3xl space-y-5 shadow-google-md text-xs">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-primary" />
+                <span>Cấu hình ghi nhận nhật ký (Core Logging)</span>
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Enable Persistent Logging */}
+                <div className="flex items-center justify-between p-3.5 bg-surface rounded-2xl border border-border">
+                  <div>
+                    <span className="font-semibold text-foreground block">Lưu trữ log vào SQLite:</span>
+                    <span className="text-[11px] text-foreground-secondary">Lưu lịch sử hoạt động để chẩn đoán</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={form.logging?.enabled ?? true}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        logging: { ...(form.logging || ({} as any)), enabled: e.target.checked },
+                      })
+                    }
+                    className="w-4 h-4 accent-primary rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* Min Log Level */}
+                <div className="flex items-center justify-between p-3.5 bg-surface rounded-2xl border border-border">
+                  <div>
+                    <span className="font-semibold text-foreground block">Mức độ log tối thiểu:</span>
+                    <span className="text-[11px] text-foreground-secondary">Lọc bớt các sự kiện không cần thiết</span>
+                  </div>
+                  <select
+                    value={form.logging?.minLevel || 'info'}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        logging: { ...(form.logging || ({} as any)), minLevel: e.target.value as any },
+                      })
+                    }
+                    className="bg-surface-hover border border-border rounded-xl p-1.5 text-xs text-foreground cursor-pointer"
+                  >
+                    <option value="trace">TRACE (Tất cả)</option>
+                    <option value="debug">DEBUG (Gỡ lỗi)</option>
+                    <option value="info">INFO (Thông tin)</option>
+                    <option value="warn">WARN (Cảnh báo)</option>
+                    <option value="error">ERROR (Lỗi)</option>
+                    <option value="fatal">FATAL (Nghiêm trọng)</option>
+                  </select>
+                </div>
+
+                {/* Retention Days */}
+                <div className="flex items-center justify-between p-3.5 bg-surface rounded-2xl border border-border">
+                  <div>
+                    <span className="font-semibold text-foreground block">Thời gian lưu trữ tự động:</span>
+                    <span className="text-[11px] text-foreground-secondary">Tự động xóa nhật ký quá hạn</span>
+                  </div>
+                  <select
+                    value={form.logging?.retentionDays ?? 30}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        logging: { ...(form.logging || ({} as any)), retentionDays: Number(e.target.value) },
+                      })
+                    }
+                    className="bg-surface-hover border border-border rounded-xl p-1.5 text-xs text-foreground cursor-pointer"
+                  >
+                    <option value={7}>7 ngày</option>
+                    <option value={14}>14 ngày</option>
+                    <option value={30}>30 ngày (Khuyến nghị)</option>
+                    <option value={90}>90 ngày</option>
+                    <option value={0}>Không bao giờ xóa (Never)</option>
+                  </select>
+                </div>
+
+                {/* Max DB Size Limit */}
+                <div className="flex items-center justify-between p-3.5 bg-surface rounded-2xl border border-border">
+                  <div>
+                    <span className="font-semibold text-foreground block">Dung lượng tối đa (MB):</span>
+                    <span className="text-[11px] text-foreground-secondary">Tự động tỉa log cũ khi chạm ngưỡng</span>
+                  </div>
+                  <input
+                    type="number"
+                    min={10}
+                    max={1000}
+                    value={Math.round((form.logging?.maxDbSizeBytes || 100 * 1024 * 1024) / (1024 * 1024))}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        logging: {
+                          ...(form.logging || ({} as any)),
+                          maxDbSizeBytes: Math.max(10, Number(e.target.value)) * 1024 * 1024,
+                        },
+                      })
+                    }
+                    className="w-24 bg-surface-hover border border-border rounded-xl p-1.5 text-center font-mono text-foreground text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Performance & Module Metadata Switches */}
+            <div className="p-6 bg-card border border-border rounded-3xl space-y-5 shadow-google-md text-xs">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Activity className="w-4 h-4 text-warning" />
+                <span>Giám sát hiệu năng & Metadata tính năng</span>
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Developer Mode Switch */}
+                <div className="flex items-center justify-between p-3.5 bg-surface rounded-2xl border border-border">
+                  <div>
+                    <span className="font-semibold text-foreground block">Chế độ nhà phát triển:</span>
+                    <span className="text-[11px] text-foreground-secondary">Bật ghi chép gỡ lỗi chi tiết toàn bộ app</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={form.logging?.developerMode ?? false}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        logging: { ...(form.logging || ({} as any)), developerMode: e.target.checked },
+                      })
+                    }
+                    className="w-4 h-4 accent-primary rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* Console logging */}
+                <div className="flex items-center justify-between p-3.5 bg-surface rounded-2xl border border-border">
+                  <div>
+                    <span className="font-semibold text-foreground block">Xuất log ra Console / Terminal:</span>
+                    <span className="text-[11px] text-foreground-secondary">Hiển thị trong cửa sổ terminal Electron</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={form.logging?.enableConsole ?? true}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        logging: { ...(form.logging || ({} as any)), enableConsole: e.target.checked },
+                      })
+                    }
+                    className="w-4 h-4 accent-primary rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* Performance Logging */}
+                <div className="flex items-center justify-between p-3.5 bg-surface rounded-2xl border border-border">
+                  <div>
+                    <span className="font-semibold text-foreground block">Đo thời gian thực thi (Performance):</span>
+                    <span className="text-[11px] text-foreground-secondary">Cảnh báo khi tác vụ vượt ngưỡng 1000ms</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={form.logging?.enablePerformance ?? true}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        logging: { ...(form.logging || ({} as any)), enablePerformance: e.target.checked },
+                      })
+                    }
+                    className="w-4 h-4 accent-primary rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* AI Request Metadata */}
+                <div className="flex items-center justify-between p-3.5 bg-surface rounded-2xl border border-border">
+                  <div>
+                    <span className="font-semibold text-foreground block">Ghi metadata cuộc gọi AI:</span>
+                    <span className="text-[11px] text-foreground-secondary">Ghi lại model, token count (không lưu API key)</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={form.logging?.enableAiMetadata ?? true}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        logging: { ...(form.logging || ({} as any)), enableAiMetadata: e.target.checked },
+                      })
+                    }
+                    className="w-4 h-4 accent-primary rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* OCR Metadata */}
+                <div className="flex items-center justify-between p-3.5 bg-surface rounded-2xl border border-border">
+                  <div>
+                    <span className="font-semibold text-foreground block">Ghi metadata OCR:</span>
+                    <span className="text-[11px] text-foreground-secondary">Ghi số khối văn bản, độ phân giải (không lưu ảnh chụp)</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={form.logging?.enableOcrMetadata ?? true}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        logging: { ...(form.logging || ({} as any)), enableOcrMetadata: e.target.checked },
+                      })
+                    }
+                    className="w-4 h-4 accent-primary rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* Speech Metadata */}
+                <div className="flex items-center justify-between p-3.5 bg-surface rounded-2xl border border-border">
+                  <div>
+                    <span className="font-semibold text-foreground block">Ghi metadata Voice / STT:</span>
+                    <span className="text-[11px] text-foreground-secondary">Ghi thời lượng âm thanh (không lưu audio gốc)</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={form.logging?.enableSpeechMetadata ?? true}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        logging: { ...(form.logging || ({} as any)), enableSpeechMetadata: e.target.checked },
+                      })
+                    }
+                    className="w-4 h-4 accent-primary rounded cursor-pointer"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}

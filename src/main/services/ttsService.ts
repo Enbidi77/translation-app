@@ -1,6 +1,8 @@
 import https from 'https';
 import http from 'http';
 import { SettingsRepository } from '../../database/repositories/settingsRepository';
+import { logger } from '../logging/logger';
+import { generateRequestId } from '../logging/log-context';
 
 export interface TtsRequest {
   text: string;
@@ -68,9 +70,37 @@ export class TtsService {
     const lang = this.normalizeLang(request.lang, text);
     const slow = Boolean(request.slow);
     const cacheKey = `${lang}:${slow ? '1' : '0'}:${text}`;
+    const requestId = generateRequestId('tts');
+    const start = Date.now();
+
+    logger.info('TTS started', {
+      category: 'tts',
+      module: 'tts-service',
+      event: 'tts_started',
+      requestId,
+      status: 'started',
+      metadata: {
+        language: lang,
+        characterCount: text.length,
+        slow,
+      },
+    });
 
     // 1. Check in-memory cache
     if (this.cache.has(cacheKey)) {
+      logger.info('TTS completed from cache', {
+        category: 'tts',
+        module: 'tts-service',
+        event: 'tts_completed',
+        requestId,
+        durationMs: Date.now() - start,
+        status: 'success',
+        metadata: {
+          language: lang,
+          characterCount: text.length,
+          cached: true,
+        },
+      });
       return {
         success: true,
         audioData: this.cache.get(cacheKey)!,
@@ -91,7 +121,13 @@ export class TtsService {
         try {
           audioBuffer = await this.synthesizeOpenAi(text, currentSettings.providers.openaiApiKey, slow);
         } catch (err) {
-          console.warn('[TtsService] OpenAI TTS failed, falling back to Google TTS:', err);
+          logger.warn('OpenAI TTS failed, falling back to Google TTS', {
+            category: 'tts',
+            module: 'tts-service',
+            event: 'tts_fallback',
+            requestId,
+            error: err,
+          });
         }
       }
 
@@ -113,6 +149,21 @@ export class TtsService {
       }
       this.cache.set(cacheKey, dataUrl);
 
+      logger.info('TTS completed', {
+        category: 'tts',
+        module: 'tts-service',
+        event: 'tts_completed',
+        requestId,
+        durationMs: Date.now() - start,
+        status: 'success',
+        metadata: {
+          language: lang,
+          characterCount: text.length,
+          provider,
+          cached: false,
+        },
+      });
+
       return {
         success: true,
         audioData: dataUrl,
@@ -121,7 +172,19 @@ export class TtsService {
         cached: false,
       };
     } catch (err: any) {
-      console.error('[TtsService] Synthesis error:', err);
+      logger.error('TTS synthesis failed', {
+        category: 'tts',
+        module: 'tts-service',
+        event: 'tts_failed',
+        requestId,
+        durationMs: Date.now() - start,
+        status: 'failed',
+        error: err,
+        metadata: {
+          language: lang,
+          characterCount: text.length,
+        },
+      });
       return {
         success: false,
         error: err.message || 'Failed to synthesize speech',

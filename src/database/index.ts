@@ -1,12 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 import initSqlJs, { Database, SqlValue } from 'sql.js';
+import { drizzle, SQLJsDatabase } from 'drizzle-orm/sql-js';
 import { DB_SCHEMA_SQL } from './schema';
+import * as logsSchema from './schema/logs';
 import { SEED_LANGUAGES, SEED_VOCABULARY } from './seeds/defaultVocabulary';
 
 export class DatabaseService {
   private static instance: DatabaseService | null = null;
   private db: Database | null = null;
+  private drizzleDb: SQLJsDatabase<typeof logsSchema> | null = null;
   private dbPath: string = '';
   private saveTimeout: NodeJS.Timeout | null = null;
 
@@ -160,11 +163,29 @@ export class DatabaseService {
     }
   }
 
+  public isInitialized(): boolean {
+    return this.db !== null;
+  }
+
+  public getDbPath(): string {
+    return this.dbPath;
+  }
+
   public getRawDb(): Database {
     if (!this.db) {
       throw new Error('[Database] Database not initialized!');
     }
     return this.db;
+  }
+
+  public getDrizzle(): SQLJsDatabase<typeof logsSchema> {
+    if (!this.db) {
+      throw new Error('[Database] Database not initialized!');
+    }
+    if (!this.drizzleDb) {
+      this.drizzleDb = drizzle(this.db, { schema: logsSchema });
+    }
+    return this.drizzleDb;
   }
 
   public query<T = any>(sql: string, params: SqlValue[] = []): T[] {
@@ -191,7 +212,7 @@ export class DatabaseService {
     return { lastInsertRowId: lastId, changes };
   }
 
-  private scheduleSave(): void {
+  public scheduleSave(): void {
     if (this.saveTimeout) {
       clearTimeout(this.saveTimeout);
     }
@@ -220,6 +241,7 @@ export class DatabaseService {
     if (this.db) {
       this.db.close();
       this.db = null;
+      this.drizzleDb = null;
     }
   }
 }

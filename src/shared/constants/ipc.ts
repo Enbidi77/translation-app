@@ -61,6 +61,18 @@ export const IPC_CHANNELS = {
   THEME_CHANGE: 'theme:change',
   THEME_GET: 'theme:get',
 
+  // Logging & Monitoring
+  LOGS_CREATE: 'logs:create',
+  LOGS_LIST: 'logs:list',
+  LOGS_GET: 'logs:get',
+  LOGS_COUNT: 'logs:count',
+  LOGS_STATS: 'logs:stats',
+  LOGS_CLEAR: 'logs:clear',
+  LOGS_EXPORT: 'logs:export',
+  LOGS_DELETE_OLDER_THAN: 'logs:deleteOlderThan',
+  LOGS_GET_CONFIG: 'logs:getConfig',
+  LOGS_UPDATE_CONFIG: 'logs:updateConfig',
+
   // Events from Main to Renderer
   EVENT_CLIPBOARD_TEXT: 'event:clipboard-text',
   EVENT_GLOBAL_SHORTCUT: 'event:global-shortcut',
@@ -68,4 +80,5 @@ export const IPC_CHANNELS = {
   EVENT_SUBTITLE_DATA: 'event:subtitle-data',
   EVENT_SNIP_START: 'event:snip-start',
   EVENT_THEME_UPDATED: 'event:theme-updated',
+  EVENT_LOG_NEW: 'event:log-new',
 } as const;

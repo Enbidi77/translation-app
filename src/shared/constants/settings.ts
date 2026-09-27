@@ -1,4 +1,4 @@
-import { AppSettings } from '../types';
+import { AppSettings, LogLevel } from '../types';
 
 export const DEFAULT_SETTINGS: AppSettings = {
   general: {
@@ -43,5 +43,18 @@ export const DEFAULT_SETTINGS: AppSettings = {
     backgroundColor: '#0f172a',
     maxLines: 2,
     subtitleTheme: 'follow_app',
+  },
+  logging: {
+    enabled: true,
+    minLevel: LogLevel.INFO,
+    retentionDays: 30,
+    maxDbSizeBytes: 100 * 1024 * 1024,
+    enableConsole: true,
+    enablePerformance: true,
+    enableAiMetadata: true,
+    enableSpeechMetadata: true,
+    enableOcrMetadata: true,
+    developerMode: false,
+    slowOperationThresholdMs: 1000,
   },
 };

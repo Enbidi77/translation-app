@@ -15,6 +15,7 @@ export const vi = {
     history: 'Lịch sử tra cứu',
     statistics: 'Thống kê học tập',
     settings: 'Cài đặt',
+    logs: 'Nhật ký & Giám sát',
     collapse: 'Thu gọn menu',
   },
   dashboard: {

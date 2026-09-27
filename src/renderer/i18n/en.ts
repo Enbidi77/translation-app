@@ -15,6 +15,7 @@ export const en = {
     history: 'History',
     statistics: 'Statistics',
     settings: 'Settings',
+    logs: 'Logs & Monitoring',
     collapse: 'Collapse Sidebar',
   },
   dashboard: {

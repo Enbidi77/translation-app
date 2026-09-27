@@ -1,6 +1,8 @@
 import { SettingsRepository } from '../../database/repositories/settingsRepository';
 import { TranslationManager } from '../../providers/translation';
 import { PinyinService } from '../../providers/translation/pinyinService';
+import { logger } from '../logging/logger';
+import { generateRequestId } from '../logging/log-context';
 
 export interface SttTranscribeRequest {
   audioData: string; // base64 or data URI
@@ -39,6 +41,9 @@ export class SttService {
   }
 
   public async transcribeAndTranslate(request: SttTranscribeRequest): Promise<SttTranscribeResponse> {
+    const requestId = generateRequestId('stt');
+    const start = Date.now();
+
     try {
       let rawBase64 = request.audioData || '';
       if (!rawBase64) {
@@ -63,24 +68,82 @@ export class SttService {
       const sourceLang = request.sourceLang || 'zh-CN';
       const targetLang = request.targetLang || 'vi';
 
+      logger.info('Speech session started', {
+        category: 'speech',
+        module: 'stt-service',
+        event: 'speech_session_started',
+        requestId,
+        status: 'started',
+        metadata: {
+          sourceLang,
+          targetLang,
+          mimeType: detectedMime,
+          audioBytesEstimate: Math.round(rawBase64.length * 0.75),
+          preferredProvider: sttPref,
+        },
+      });
+
+      let response: SttTranscribeResponse;
+
       // 1. If OpenAI Whisper is preferred or Gemini key is absent but OpenAI is present
       if ((sttPref === 'whisper' && openaiKey) || (!geminiKey && openaiKey)) {
-        return await this.transcribeWithWhisper(rawBase64, detectedMime, openaiKey, sourceLang, targetLang);
+        response = await this.transcribeWithWhisper(rawBase64, detectedMime, openaiKey, sourceLang, targetLang);
+      } else if (geminiKey) {
+        // 2. If Gemini key is available (preferred default)
+        response = await this.transcribeWithGemini(rawBase64, detectedMime, geminiKey, settings.providers?.geminiModel || 'gemini-1.5-flash', sourceLang, targetLang);
+      } else {
+        // 3. Neither key is configured
+        response = {
+          success: false,
+          error: 'Chưa cấu hình API Key. Để sử dụng nhận diện giọng nói thời gian thực trong Electron, vui lòng nhập Gemini API Key (Miễn phí 100%) hoặc OpenAI Key tại trang Cài đặt.',
+          errorCode: 'NO_API_KEY',
+        };
       }
 
-      // 2. If Gemini key is available (preferred default)
-      if (geminiKey) {
-        return await this.transcribeWithGemini(rawBase64, detectedMime, geminiKey, settings.providers?.geminiModel || 'gemini-1.5-flash', sourceLang, targetLang);
+      const durationMs = Date.now() - start;
+      if (response.success) {
+        logger.info('Speech session completed', {
+          category: 'speech',
+          module: 'stt-service',
+          event: 'speech_session_completed',
+          requestId,
+          durationMs,
+          status: 'success',
+          metadata: {
+            sourceLang,
+            targetLang,
+            transcriptCharacterCount: response.transcript?.length || 0,
+            translationCharacterCount: response.translation?.length || 0,
+          },
+        });
+      } else {
+        logger.warn('Speech transcription failed', {
+          category: 'speech',
+          module: 'stt-service',
+          event: 'speech_failed',
+          requestId,
+          durationMs,
+          status: 'failed',
+          metadata: {
+            sourceLang,
+            targetLang,
+            errorCode: response.errorCode,
+            error: response.error,
+          },
+        });
       }
 
-      // 3. Neither key is configured
-      return {
-        success: false,
-        error: 'Chưa cấu hình API Key. Để sử dụng nhận diện giọng nói thời gian thực trong Electron, vui lòng nhập Gemini API Key (Miễn phí 100%) hoặc OpenAI Key tại trang Cài đặt.',
-        errorCode: 'NO_API_KEY',
-      };
+      return response;
     } catch (err: any) {
-      console.error('[SttService] Transcription error:', err);
+      logger.error('Speech transcription encountered uncaught error', {
+        category: 'speech',
+        module: 'stt-service',
+        event: 'speech_failed',
+        requestId,
+        durationMs: Date.now() - start,
+        status: 'failed',
+        error: err,
+      });
       return {
         success: false,
         error: err.message || 'Lỗi khi xử lý giọng nói',
