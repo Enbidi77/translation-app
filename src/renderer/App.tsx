@@ -100,14 +100,14 @@ const AppLayout: React.FC = () => {
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-5 duration-200">
           <div
-            className={`px-4 py-3 rounded-2xl shadow-google-lg text-xs font-medium border flex items-center gap-2.5 backdrop-blur-md ${
+            className={`px-4 py-3 rounded-2xl shadow-google-lg text-xs font-medium border flex items-center gap-2.5 ${
               toastType === 'success'
-                ? 'bg-success/15 border-success/30 text-success'
+                ? 'bg-success-muted border-success/30 text-success'
                 : toastType === 'error'
-                ? 'bg-destructive/15 border-destructive/30 text-destructive'
+                ? 'bg-destructive-muted border-destructive/30 text-destructive'
                 : toastType === 'warning'
-                ? 'bg-warning/15 border-warning/30 text-warning'
-                : 'bg-surface/95 border-border text-foreground shadow-google-md'
+                ? 'bg-warning-muted border-warning/30 text-warning'
+                : 'bg-surface border-border text-foreground shadow-google-md'
             }`}
           >
             <span>{toastMessage}</span>

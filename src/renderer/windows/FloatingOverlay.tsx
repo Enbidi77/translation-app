@@ -19,10 +19,10 @@ export const FloatingOverlay: React.FC = () => {
   const [data, setData] = useState<TranslationResponse | null>(null);
   const [alwaysOnTop, setAlwaysOnTop] = useState(true);
   const [clickThrough, setClickThrough] = useState(false);
-  const [opacity, setOpacity] = useState(0.95);
+  const [opacity, setOpacity] = useState(1.0);
   const [savedWords, setSavedWords] = useState<Record<string, boolean>>({});
   const { openWordModal } = useAppStore();
-  const { initTheme } = useSettingsStore();
+  const { initTheme, effectiveTheme } = useSettingsStore();
 
   useEffect(() => {
     const unsubTheme = initTheme();
@@ -44,7 +44,9 @@ export const FloatingOverlay: React.FC = () => {
   const handleOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
     setOpacity(val);
-    window.electronAPI?.setOpacity(val);
+    if (window.electronAPI?.setOpacity) {
+      window.electronAPI.setOpacity(val);
+    }
   };
 
   const handleClose = () => {
@@ -68,7 +70,13 @@ export const FloatingOverlay: React.FC = () => {
 
   if (!data) {
     return (
-      <div className="h-screen w-screen bg-surface/95 text-foreground-secondary p-4 flex items-center justify-center text-xs backdrop-blur-md">
+      <div
+        className={`h-screen w-screen p-4 flex items-center justify-center text-xs select-none rounded-2xl border shadow-google-lg ${
+          effectiveTheme === 'light'
+            ? 'bg-[#ffffff] text-[#5f6368] border-[#dadce0]'
+            : 'bg-[#202124] text-[#9aa0a6] border-[#3c4043]'
+        }`}
+      >
         Đang chờ kết quả dịch...
       </div>
     );
@@ -78,12 +86,22 @@ export const FloatingOverlay: React.FC = () => {
 
   return (
     <div
-      className="h-screen w-screen flex flex-col bg-surface/95 text-foreground rounded-2xl border border-border shadow-google-lg overflow-hidden backdrop-blur-md select-none transition-colors"
-      style={{ opacity }}
+      className={`h-screen w-screen flex flex-col rounded-2xl border overflow-hidden select-none transition-colors shadow-google-lg ${
+        effectiveTheme === 'light'
+          ? 'bg-[#ffffff] text-[#202124] border-[#dadce0]'
+          : 'bg-[#202124] text-[#e8eaed] border-[#3c4043]'
+      }`}
+      style={window.electronAPI ? undefined : (opacity < 1.0 ? { opacity } : undefined)}
     >
       {/* Draggable Header */}
-      <div className="h-9 px-3 bg-surface border-b border-border flex items-center justify-between text-xs titlebar-drag">
-        <div className="flex items-center gap-1.5 text-foreground font-semibold">
+      <div
+        className={`h-9 px-3 border-b flex items-center justify-between text-xs titlebar-drag ${
+          effectiveTheme === 'light'
+            ? 'bg-[#f8f9fa] border-[#dadce0]'
+            : 'bg-[#292a2d] border-[#3c4043]'
+        }`}
+      >
+        <div className="flex items-center gap-1.5 font-semibold">
           <Move className="w-3.5 h-3.5 text-primary" />
           <span>Dịch Màn Hình</span>
           <span className="text-[10px] px-1.5 py-0.2 rounded bg-primary-muted text-primary border border-primary/30 uppercase font-mono">
@@ -93,7 +111,13 @@ export const FloatingOverlay: React.FC = () => {
 
         {/* Toolbar Controls */}
         <div className="flex items-center gap-1 titlebar-no-drag">
-          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-hover border border-border text-[10px]">
+          <div
+            className={`flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] ${
+              effectiveTheme === 'light'
+                ? 'bg-[#ffffff] border-[#dadce0]'
+                : 'bg-[#303134] border-[#3c4043]'
+            }`}
+          >
             <Sliders className="w-3 h-3 text-muted-foreground" />
             <input
               type="range"
@@ -109,7 +133,11 @@ export const FloatingOverlay: React.FC = () => {
 
           <button
             onClick={handleTogglePin}
-            className={`p-1 rounded transition-colors ${alwaysOnTop ? 'text-primary bg-primary-muted border border-primary/20' : 'text-muted-foreground hover:bg-surface-hover'}`}
+            className={`p-1 rounded transition-colors ${
+              alwaysOnTop
+                ? 'text-primary bg-primary-muted border border-primary/20'
+                : 'text-muted-foreground hover:bg-surface-hover'
+            }`}
             title={alwaysOnTop ? 'Ghim trên cùng' : 'Bỏ ghim'}
           >
             {alwaysOnTop ? <Pin className="w-3.5 h-3.5" /> : <PinOff className="w-3.5 h-3.5" />}
@@ -126,9 +154,19 @@ export const FloatingOverlay: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 p-3.5 space-y-3 overflow-y-auto">
+      <div
+        className={`flex-1 p-3.5 space-y-3 overflow-y-auto ${
+          effectiveTheme === 'light' ? 'bg-[#ffffff]' : 'bg-[#202124]'
+        }`}
+      >
         {/* Source Text with clickable words */}
-        <div className="p-3 bg-surface-hover/60 border border-border rounded-xl space-y-1.5">
+        <div
+          className={`p-3 border rounded-xl space-y-1.5 shadow-google-sm ${
+            effectiveTheme === 'light'
+              ? 'bg-[#f8f9fa] border-[#dadce0]'
+              : 'bg-[#292a2d] border-[#3c4043]'
+          }`}
+        >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Nguyên văn:</span>
             <div className="flex items-center gap-1">
@@ -163,7 +201,13 @@ export const FloatingOverlay: React.FC = () => {
         </div>
 
         {/* Vietnamese Translation */}
-        <div className="p-3 bg-success-muted border border-success/30 rounded-xl space-y-1">
+        <div
+          className={`p-3 border rounded-xl space-y-1 shadow-google-sm ${
+            effectiveTheme === 'light'
+              ? 'bg-[#e6f4ea] border-[#ceead6]'
+              : 'bg-[#1e2e24] border-[#81c995]/30'
+          }`}
+        >
           <span className="text-[11px] font-semibold text-success uppercase tracking-wider">Tiếng Việt:</span>
           <p className="text-sm font-medium text-foreground leading-relaxed">
             {data.translatedText}
@@ -182,7 +226,11 @@ export const FloatingOverlay: React.FC = () => {
                 return (
                   <div
                     key={idx}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface border border-border text-xs shadow-google-sm"
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs shadow-google-sm ${
+                      effectiveTheme === 'light'
+                        ? 'bg-[#ffffff] border-[#dadce0]'
+                        : 'bg-[#292a2d] border-[#3c4043]'
+                    }`}
                   >
                     <span 
                       onClick={() => openWordModal(w)}

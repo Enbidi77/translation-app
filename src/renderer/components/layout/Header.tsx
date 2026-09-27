@@ -13,7 +13,7 @@ export const Header: React.FC = () => {
   const handleTriggerSnip = () => window.electronAPI?.triggerSnip();
 
   return (
-    <header className="h-11 bg-surface/95 backdrop-blur-md border-b border-border flex items-center justify-between px-3 select-none titlebar-drag z-40 transition-colors">
+    <header className="h-11 bg-surface border-b border-border flex items-center justify-between px-3 select-none titlebar-drag z-40 transition-colors">
       {/* Left: App Brand & Quick Action */}
       <div className="flex items-center gap-3 titlebar-no-drag">
         <div className="flex items-center gap-2">
@@ -27,12 +27,12 @@ export const Header: React.FC = () => {
 
         <button
           onClick={handleTriggerSnip}
-          className="ml-2 px-2.5 py-1 rounded-md bg-primary-muted hover:bg-primary/20 text-primary border border-primary/30 text-xs font-medium flex items-center gap-1.5 transition-colors shadow-google-sm"
+          className="ml-2 px-2.5 py-1 rounded-md bg-primary-muted hover:bg-primary-hover/20 text-primary border border-primary/30 text-xs font-medium flex items-center gap-1.5 transition-colors shadow-google-sm"
           title="Chụp & dịch bất kỳ vùng nào trên màn hình (Ctrl+Shift+T)"
         >
           <Crop className="w-3.5 h-3.5" />
           <span>Dịch màn hình</span>
-          <kbd className="px-1 py-0.2 text-[10px] bg-primary/20 rounded border border-primary/40 font-mono">
+          <kbd className="px-1 py-0.2 text-[10px] bg-primary-muted rounded border border-primary/40 font-mono">
             Ctrl+Shift+T
           </kbd>
         </button>
@@ -41,7 +41,7 @@ export const Header: React.FC = () => {
       {/* Right: Theme Switcher, Language Switch & Window Controls */}
       <div className="flex items-center gap-2 titlebar-no-drag">
         {/* Quick Theme Switcher */}
-        <div className="flex items-center bg-surface-hover/80 border border-border rounded-lg p-0.5 text-xs">
+        <div className="flex items-center bg-surface-hover border border-border rounded-lg p-0.5 text-xs">
           <button
             type="button"
             onClick={() => setThemeMode('light')}

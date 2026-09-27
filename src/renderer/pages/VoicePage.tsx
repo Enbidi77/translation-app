@@ -180,7 +180,7 @@ export const VoicePage: React.FC = () => {
           onClick={toggleListening}
           className={`w-24 h-24 rounded-full flex items-center justify-center shadow-google-lg transition-all z-10 ${
             isListening
-              ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground animate-pulse'
+              ? 'bg-destructive hover:opacity-90 text-destructive-foreground animate-pulse'
               : 'bg-primary hover:bg-primary-hover text-primary-foreground'
           }`}
         >

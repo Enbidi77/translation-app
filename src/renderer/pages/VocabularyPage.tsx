@@ -163,7 +163,7 @@ export const VocabularyPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-border">
               {items.map((item) => (
-                <tr key={item.id} className="hover:bg-surface-hover/70 transition-colors">
+                <tr key={item.id} className="hover:bg-surface-hover transition-colors">
                   <td className="py-3.5 px-4 font-bold text-foreground text-sm">
                     <div className="flex items-center gap-2">
                       <span>{item.word}</span>

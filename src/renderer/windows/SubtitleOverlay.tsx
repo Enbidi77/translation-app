@@ -18,7 +18,7 @@ export const SubtitleOverlay: React.FC = () => {
   });
   const [showPinyin, setShowPinyin] = useState(true);
   const [fontSize, setFontSize] = useState(20);
-  const [opacity, setOpacity] = useState(0.92);
+  const [opacity, setOpacity] = useState(1.0);
   const [clickThrough, setClickThrough] = useState(false);
 
   const { effectiveTheme, subtitleTheme, setSubtitleTheme } = useSettingsStore();
@@ -60,7 +60,7 @@ export const SubtitleOverlay: React.FC = () => {
     }
     if (resolved === 'light') {
       return {
-        container: 'bg-white/95 border-[#dadce0] text-[#202124] shadow-google-lg backdrop-blur-md',
+        container: 'bg-white border-[#dadce0] text-[#202124] shadow-google-lg',
         header: 'text-[#5f6368]',
         originalText: 'text-[#202124] drop-shadow-sm',
         transText: 'text-[#1e8e3e] font-semibold',
@@ -69,7 +69,7 @@ export const SubtitleOverlay: React.FC = () => {
     }
     // dark
     return {
-      container: 'bg-[#202124]/95 border-[#3c4043] text-[#e8eaed] shadow-google-lg backdrop-blur-md',
+      container: 'bg-[#202124] border-[#3c4043] text-[#e8eaed] shadow-google-lg',
       header: 'text-[#9aa0a6]',
       originalText: 'text-[#e8eaed] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]',
       transText: 'text-[#81c995] font-semibold',

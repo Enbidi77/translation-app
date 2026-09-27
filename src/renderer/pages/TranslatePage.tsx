@@ -232,7 +232,7 @@ export const TranslatePage: React.FC = () => {
 
             {/* Pinyin representation for Chinese text */}
             {result.pinyin && (
-              <div className="p-3 bg-surface-hover/70 rounded-2xl border border-border space-y-1">
+              <div className="p-3 bg-surface-hover rounded-2xl border border-border space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                     Phiên âm Pinyin (có thanh điệu):

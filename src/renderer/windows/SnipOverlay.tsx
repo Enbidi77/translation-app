@@ -79,7 +79,7 @@ export const SnipOverlay: React.FC = () => {
       )}
 
       {/* Top Banner Guide */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-surface/95 text-foreground rounded-full border border-border shadow-google-lg flex items-center gap-2 text-xs font-medium z-50 pointer-events-none backdrop-blur-md">
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-surface text-foreground rounded-full border border-border shadow-google-lg flex items-center gap-2 text-xs font-medium z-50 pointer-events-none">
         <Crop className="w-4 h-4 text-primary animate-pulse" />
         <span>
           Kéo chuột để chọn vùng chữ cần dịch • Nhấn{' '}
@@ -119,7 +119,7 @@ export const SnipOverlay: React.FC = () => {
       {/* Processing State Modal */}
       {isProcessing && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-50">
-          <div className="px-5 py-3.5 bg-surface/95 border border-border rounded-2xl text-foreground text-xs font-semibold shadow-google-lg flex items-center gap-3 backdrop-blur-md">
+          <div className="px-5 py-3.5 bg-surface border border-border rounded-2xl text-foreground text-xs font-semibold shadow-google-lg flex items-center gap-3">
             <Loader2 className="w-4 h-4 text-primary animate-spin" />
             <span>Đang nhận diện chữ và dịch...</span>
           </div>

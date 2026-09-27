@@ -48,7 +48,7 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`h-[calc(100vh-2.75rem)] bg-surface/90 border-r border-border flex flex-col justify-between transition-all duration-200 select-none ${
+      className={`h-[calc(100vh-2.75rem)] bg-surface border-r border-border flex flex-col justify-between transition-all duration-200 select-none ${
         collapsed ? 'w-16' : 'w-56'
       }`}
     >

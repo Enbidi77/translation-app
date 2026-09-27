@@ -171,7 +171,7 @@ export const FlashcardsPage: React.FC = () => {
             <div className="grid grid-cols-4 gap-3 animate-in fade-in duration-150">
               <button
                 onClick={() => handleRating(1)}
-                className="p-3.5 rounded-2xl bg-destructive-muted hover:bg-destructive/20 border border-destructive/40 text-destructive font-bold text-xs flex flex-col items-center gap-1 transition-all shadow-google-sm"
+                className="p-3.5 rounded-2xl bg-destructive-muted hover:brightness-110 hover:shadow-google-md border border-destructive/40 text-destructive font-bold text-xs flex flex-col items-center gap-1 transition-all shadow-google-sm"
               >
                 <span className="text-sm">Quên (1)</span>
                 <span className="text-[10px] opacity-80 font-normal">Học lại ngày mai</span>
@@ -179,7 +179,7 @@ export const FlashcardsPage: React.FC = () => {
 
               <button
                 onClick={() => handleRating(2)}
-                className="p-3.5 rounded-2xl bg-warning-muted hover:bg-warning/20 border border-warning/40 text-warning font-bold text-xs flex flex-col items-center gap-1 transition-all shadow-google-sm"
+                className="p-3.5 rounded-2xl bg-warning-muted hover:brightness-110 hover:shadow-google-md border border-warning/40 text-warning font-bold text-xs flex flex-col items-center gap-1 transition-all shadow-google-sm"
               >
                 <span className="text-sm">Khó (2)</span>
                 <span className="text-[10px] opacity-80 font-normal">Ôn sớm</span>
@@ -187,7 +187,7 @@ export const FlashcardsPage: React.FC = () => {
 
               <button
                 onClick={() => handleRating(3)}
-                className="p-3.5 rounded-2xl bg-primary-muted hover:bg-primary/20 border border-primary/40 text-primary font-bold text-xs flex flex-col items-center gap-1 transition-all shadow-google-sm"
+                className="p-3.5 rounded-2xl bg-primary-muted hover:brightness-110 hover:shadow-google-md border border-primary/40 text-primary font-bold text-xs flex flex-col items-center gap-1 transition-all shadow-google-sm"
               >
                 <span className="text-sm">Tốt (3)</span>
                 <span className="text-[10px] opacity-80 font-normal">Đúng chuẩn SM-2</span>
@@ -195,7 +195,7 @@ export const FlashcardsPage: React.FC = () => {
 
               <button
                 onClick={() => handleRating(4)}
-                className="p-3.5 rounded-2xl bg-success-muted hover:bg-success/20 border border-success/40 text-success font-bold text-xs flex flex-col items-center gap-1 transition-all shadow-google-sm"
+                className="p-3.5 rounded-2xl bg-success-muted hover:brightness-110 hover:shadow-google-md border border-success/40 text-success font-bold text-xs flex flex-col items-center gap-1 transition-all shadow-google-sm"
               >
                 <span className="text-sm">Dễ (4)</span>
                 <span className="text-[10px] opacity-80 font-normal">Kéo dài khoảng cách</span>

@@ -185,7 +185,7 @@ export const ThemePreviewCard: React.FC = () => {
 
             <button
               type="button"
-              className="px-3 py-1.5 rounded-xl bg-destructive-muted text-destructive hover:bg-destructive/20 font-medium text-xs border border-destructive/30 transition-colors"
+              className="px-3 py-1.5 rounded-xl bg-destructive-muted text-destructive hover:brightness-110 font-medium text-xs border border-destructive/30 transition-colors"
             >
               Destructive
             </button>

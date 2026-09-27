@@ -91,7 +91,7 @@ export const WordBreakdownModal: React.FC = () => {
           </div>
 
           {grammarExplanation && (
-            <div className="p-3 bg-surface-hover/70 border border-border rounded-xl text-xs leading-relaxed text-foreground max-h-48 overflow-y-auto whitespace-pre-line">
+            <div className="p-3 bg-surface-hover border border-border rounded-xl text-xs leading-relaxed text-foreground max-h-48 overflow-y-auto whitespace-pre-line">
               {grammarExplanation}
             </div>
           )}
