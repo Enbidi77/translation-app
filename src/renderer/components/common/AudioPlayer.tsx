@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Volume2, Volume1, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Volume2, Volume1, Loader2, Square } from 'lucide-react';
+import { soundManager } from '../../services/audioService';
 
 interface AudioPlayerProps {
   text: string;
-  lang?: 'zh' | 'en' | 'vi';
+  lang?: 'zh' | 'en' | 'vi' | string;
   slow?: boolean;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -16,30 +17,32 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   size = 'md',
   className = '',
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackStatus, setPlaybackStatus] = useState<'idle' | 'loading' | 'playing'>('idle');
 
-  const speak = (e?: React.MouseEvent) => {
+  useEffect(() => {
+    return () => {
+      // If component unmounts while this audio was playing, we don't necessarily stop global audio unless needed
+    };
+  }, []);
+
+  const handleClick = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (!text || !window.speechSynthesis) return;
+    if (!text) return;
 
-    window.speechSynthesis.cancel(); // Stop any active playback
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    if (lang === 'zh') {
-      utterance.lang = 'zh-CN';
-    } else if (lang === 'en') {
-      utterance.lang = 'en-US';
-    } else {
-      utterance.lang = 'vi-VN';
+    if (playbackStatus === 'playing' || playbackStatus === 'loading') {
+      soundManager.stopAll();
+      setPlaybackStatus('idle');
+      return;
     }
 
-    utterance.rate = slow ? 0.75 : 1.0;
-
-    utterance.onstart = () => setIsPlaying(true);
-    utterance.onend = () => setIsPlaying(false);
-    utterance.onerror = () => setIsPlaying(false);
-
-    window.speechSynthesis.speak(utterance);
+    try {
+      await soundManager.playText(text, lang, slow, (status) => {
+        setPlaybackStatus(status);
+      });
+    } catch (err) {
+      console.error('[AudioPlayer] Playback failed:', err);
+      setPlaybackStatus('idle');
+    }
   };
 
   const iconSizes = {
@@ -48,16 +51,36 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     lg: 'w-5 h-5',
   };
 
+  const getLanguageName = (l: string) => {
+    if (l.startsWith('zh')) return 'tiếng Trung';
+    if (l.startsWith('en')) return 'tiếng Anh';
+    if (l.startsWith('vi')) return 'tiếng Việt';
+    return l;
+  };
+
+  const tooltip = playbackStatus === 'playing'
+    ? 'Đang phát âm... (Bấm để dừng)'
+    : playbackStatus === 'loading'
+    ? 'Đang tải âm thanh...'
+    : `Phát âm ${getLanguageName(lang)}${slow ? ' (tốc độ chậm)' : ''}`;
+
   return (
     <button
       type="button"
-      onClick={speak}
-      disabled={isPlaying}
-      title={`Phát âm ${lang === 'zh' ? 'tiếng Trung' : lang === 'en' ? 'tiếng Anh' : 'tiếng Việt'}${slow ? ' (chậm)' : ''}`}
-      className={`inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-primary transition-colors focus:outline-none ${className}`}
+      onClick={handleClick}
+      title={tooltip}
+      className={`inline-flex items-center justify-center p-1.5 rounded-lg transition-all focus:outline-none ${
+        playbackStatus === 'playing'
+          ? 'bg-primary-muted text-primary border border-primary/30 shadow-google-sm'
+          : playbackStatus === 'loading'
+          ? 'bg-surface-hover text-primary'
+          : 'hover:bg-surface-hover text-muted-foreground hover:text-primary'
+      } ${className}`}
     >
-      {isPlaying ? (
+      {playbackStatus === 'loading' ? (
         <Loader2 className={`${iconSizes[size]} animate-spin text-primary`} />
+      ) : playbackStatus === 'playing' ? (
+        <Volume2 className={`${iconSizes[size]} animate-pulse text-primary`} />
       ) : slow ? (
         <Volume1 className={iconSizes[size]} />
       ) : (

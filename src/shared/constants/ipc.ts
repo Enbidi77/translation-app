@@ -29,11 +29,12 @@ export const IPC_CHANNELS = {
   FLASHCARD_REVIEW: 'flashcard:review',
   FLASHCARD_GET_STATS: 'flashcard:get-stats',
 
-  // Translation & OCR
+  // Translation, OCR & TTS
   TRANSLATE_TEXT: 'translate:text',
   TRANSLATE_DETECT: 'translate:detect',
   OCR_PROCESS_IMAGE: 'ocr:process-image',
   OCR_PROCESS_RECT: 'ocr:process-rect',
+  TTS_SYNTHESIZE: 'tts:synthesize',
 
   // History
   HISTORY_GET: 'history:get',

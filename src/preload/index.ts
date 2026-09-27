@@ -52,12 +52,20 @@ export const electronAPI = {
     ipcRenderer.invoke(IPC_CHANNELS.FLASHCARD_REVIEW, { cardId, rating }),
   getFlashcardStats: () => ipcRenderer.invoke(IPC_CHANNELS.FLASHCARD_GET_STATS),
 
-  // Translation & OCR
+  // Translation, OCR & TTS
   translate: (request: TranslationRequest): Promise<TranslationResponse> => 
     ipcRenderer.invoke(IPC_CHANNELS.TRANSLATE_TEXT, request),
   detectLanguage: (text: string) => ipcRenderer.invoke(IPC_CHANNELS.TRANSLATE_DETECT, text),
   processOcrImage: (imageBuffer: string): Promise<OCRResult> => 
     ipcRenderer.invoke(IPC_CHANNELS.OCR_PROCESS_IMAGE, imageBuffer),
+  synthesizeSpeech: (params: { text: string; lang?: string; slow?: boolean }): Promise<{
+    success: boolean;
+    audioData?: string;
+    format?: string;
+    lang?: string;
+    cached?: boolean;
+    error?: string;
+  }> => ipcRenderer.invoke(IPC_CHANNELS.TTS_SYNTHESIZE, params),
 
   // History & Statistics
   getHistory: (limit?: number) => ipcRenderer.invoke(IPC_CHANNELS.HISTORY_GET, limit),

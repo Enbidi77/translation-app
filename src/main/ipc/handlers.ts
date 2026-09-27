@@ -15,8 +15,10 @@ import { OverlayWindowManager } from '../windows/overlayWindow';
 import { SubtitleWindowManager } from '../windows/subtitleWindow';
 import { ShortcutService } from '../services/shortcutService';
 import { ClipboardService } from '../services/clipboardService';
+import { TtsService } from '../services/ttsService';
 
 export function setupIpcHandlers() {
+  const ttsService = TtsService.getInstance();
   const vocabRepo = new VocabularyRepository();
   const flashcardRepo = new FlashcardRepository();
   const historyRepo = new HistoryRepository();
@@ -266,6 +268,11 @@ export function setupIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.OCR_PROCESS_IMAGE, async (event, imageBuffer: string) => {
     return await ocrManager.recognize(imageBuffer);
+  });
+
+  // Text To Speech (TTS) Handler
+  ipcMain.handle(IPC_CHANNELS.TTS_SYNTHESIZE, async (event, request) => {
+    return await ttsService.synthesize(request);
   });
 
   // Translation History Handlers

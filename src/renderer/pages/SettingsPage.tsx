@@ -461,6 +461,21 @@ export const SettingsPage: React.FC = () => {
               </select>
             </div>
 
+            <div>
+              <label className="block text-muted-foreground mb-1 font-medium">Nhà cung cấp phát âm giọng đọc (Text To Speech - TTS):</label>
+              <select
+                value={form.providers.ttsProvider || 'google'}
+                onChange={(e) =>
+                  setForm({ ...form, providers: { ...form.providers, ttsProvider: e.target.value as any } })
+                }
+                className="w-full bg-surface border border-border rounded-2xl p-2.5 text-foreground focus:outline-none focus:border-primary"
+              >
+                <option value="google">Google Natural TTS (Khuyên dùng - Chuẩn âm điệu Tiếng Trung, Tiếng Anh, Tiếng Việt)</option>
+                <option value="openai">OpenAI TTS (Sử dụng OpenAI API Key bên dưới)</option>
+                <option value="system">Hệ thống Windows (SpeechSynthesis SAPI)</option>
+              </select>
+            </div>
+
             {/* Gemini Settings */}
             <div className="p-4 bg-surface rounded-2xl border border-border space-y-3 shadow-google-sm">
               <span className="font-bold text-foreground text-sm flex items-center gap-1.5">

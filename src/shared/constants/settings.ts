@@ -25,7 +25,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     translationProvider: 'google_free',
     ocrProvider: 'tesseract',
     aiProvider: 'gemini',
-    ttsProvider: 'system',
+    ttsProvider: 'google',
     sttProvider: 'system',
     geminiApiKey: '',
     geminiModel: 'gemini-1.5-flash',
