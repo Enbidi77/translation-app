@@ -95,8 +95,15 @@ export function setupIpcHandlers() {
 
       // 2. Perform OCR
       const ocrResult = await ocrManager.recognize(croppedDataUrl);
-      if (!ocrResult.text || !ocrResult.text.trim()) {
+      if (!ocrResult || !ocrResult.text || !ocrResult.text.trim()) {
         console.warn('[Snip] No text detected in cropped region.');
+        await OverlayWindowManager.getInstance().showWithData({
+          sourceText: '（Không nhận diện được văn bản trong vùng đã chọn）',
+          translatedText: 'Gợi ý: Hãy quét lại vùng màn hình có chứa chữ rõ nét hơn.',
+          sourceLang: 'zh',
+          targetLang: 'vi',
+          provider: 'none',
+        }, rect);
         return null;
       }
 
