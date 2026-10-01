@@ -8,16 +8,20 @@ import {
   Sparkles, 
   Volume2, 
   RotateCcw,
-  Award
+  Award,
+  Lock,
 } from 'lucide-react';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { useAppStore } from '../stores/useAppStore';
 import { TonePinyin } from '../components/common/TonePinyin';
 import { AudioPlayer } from '../components/common/AudioPlayer';
+import { useFeatureFlags } from '../useFeatureFlags';
+import { FeatureGate } from '../FeatureGate';
 
 export const PracticePage: React.FC = () => {
   const { dict } = useSettingsStore();
   const { showToast } = useAppStore();
+  const { isPracticeSpeakingEnabled } = useFeatureFlags();
 
   const [activeTab, setActiveTab] = useState<'listen' | 'speak'>('listen');
 
@@ -189,6 +193,11 @@ export const PracticePage: React.FC = () => {
         >
           <Mic className="w-4 h-4" />
           <span>{dict.practice.speakTab}</span>
+          {!isPracticeSpeakingEnabled && (
+            <span title="Cần Gemini hoặc OpenAI API Key" className="p-0.5 rounded-full bg-warning-muted text-warning">
+              <Lock className="w-3 h-3" />
+            </span>
+          )}
         </button>
       </div>
 
@@ -248,66 +257,72 @@ export const PracticePage: React.FC = () => {
         </div>
       )}
 
-      {/* Tab 2: Speaking & Pronunciation Practice */}
+      {/* Tab 2: Speaking & Pronunciation Practice (Gated by Feature Flag) */}
       {activeTab === 'speak' && (
-        <div className="p-6 bg-card border border-border rounded-3xl space-y-6 shadow-google-md">
-          {/* Target Sentence Card */}
-          <div className="p-6 bg-surface rounded-2xl border border-border space-y-2 shadow-google-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Câu luyện nói mẫu:</span>
-              <div className="flex items-center gap-1">
-                <AudioPlayer text={speakSentence.chinese} lang="zh" size="sm" />
-                <AudioPlayer text={speakSentence.chinese} lang="zh" slow size="sm" />
-              </div>
-            </div>
-            <div className="text-2xl font-bold text-foreground">{speakSentence.chinese}</div>
-            <TonePinyin pinyin={speakSentence.pinyin} className="text-sm" />
-            <div className="text-xs font-medium text-success">{speakSentence.meaning}</div>
-          </div>
-
-          {/* Record Button */}
-          <div className="flex flex-col items-center justify-center p-6 space-y-3">
-            <button
-              onClick={handleStartSpeaking}
-              disabled={isRecording || isEvaluating}
-              className={`w-20 h-20 rounded-full flex items-center justify-center shadow-google-lg transition-all ${
-                isRecording
-                  ? 'bg-destructive text-destructive-foreground animate-pulse'
-                  : 'bg-primary hover:bg-primary-hover text-primary-foreground'
-              }`}
-            >
-              {isRecording ? <MicOff className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
-            </button>
-            <span className="text-xs text-muted-foreground font-medium">
-              {isRecording ? 'Đang lắng nghe phát âm của bạn...' : isEvaluating ? dict.practice.evaluating : dict.practice.startSpeaking}
-            </span>
-          </div>
-
-          {/* User Spoken Result & Evaluation */}
-          {spokenTranscript && (
-            <div className="p-5 bg-surface rounded-2xl border border-border space-y-3 shadow-google-sm animate-in fade-in duration-200">
-              <div className="text-xs font-semibold text-muted-foreground">Bạn đã nói:</div>
-              <div className="text-lg font-bold text-foreground leading-snug">"{spokenTranscript}"</div>
-
-              {speechEvaluation && (
-                <div className="pt-3 border-t border-border space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-warning" />
-                    <span className="text-sm font-bold text-foreground">Điểm phát âm: {speechEvaluation.score} / 100</span>
-                  </div>
-                  <p className="text-xs text-foreground-secondary bg-surface-hover p-3 rounded-xl border border-border leading-relaxed">
-                    {speechEvaluation.feedback}
-                  </p>
-                  {speechEvaluation.naturalAlternative && (
-                    <div className="text-xs text-muted-foreground">
-                      Cách nói tự nhiên hơn: <span className="text-success font-medium">{speechEvaluation.naturalAlternative}</span>
-                    </div>
-                  )}
+        <FeatureGate
+          feature="practiceSpeaking"
+          title="Luyện Nói Phát Âm Trực Tiếp Với AI"
+          description="Tính năng nhận diện giọng nói và chấm điểm phát âm tương tác cần có Gemini API Key hoặc OpenAI API Key."
+        >
+          <div className="p-6 bg-card border border-border rounded-3xl space-y-6 shadow-google-md">
+            {/* Target Sentence Card */}
+            <div className="p-6 bg-surface rounded-2xl border border-border space-y-2 shadow-google-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Câu luyện nói mẫu:</span>
+                <div className="flex items-center gap-1">
+                  <AudioPlayer text={speakSentence.chinese} lang="zh" size="sm" />
+                  <AudioPlayer text={speakSentence.chinese} lang="zh" slow size="sm" />
                 </div>
-              )}
+              </div>
+              <div className="text-2xl font-bold text-foreground">{speakSentence.chinese}</div>
+              <TonePinyin pinyin={speakSentence.pinyin} className="text-sm" />
+              <div className="text-xs font-medium text-success">{speakSentence.meaning}</div>
             </div>
-          )}
-        </div>
+
+            {/* Record Button */}
+            <div className="flex flex-col items-center justify-center p-6 space-y-3">
+              <button
+                onClick={handleStartSpeaking}
+                disabled={isRecording || isEvaluating}
+                className={`w-20 h-20 rounded-full flex items-center justify-center shadow-google-lg transition-all ${
+                  isRecording
+                    ? 'bg-destructive text-destructive-foreground animate-pulse'
+                    : 'bg-primary hover:bg-primary-hover text-primary-foreground'
+                }`}
+              >
+                {isRecording ? <MicOff className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
+              </button>
+              <span className="text-xs text-muted-foreground font-medium">
+                {isRecording ? 'Đang lắng nghe phát âm của bạn...' : isEvaluating ? dict.practice.evaluating : dict.practice.startSpeaking}
+              </span>
+            </div>
+
+            {/* User Spoken Result & Evaluation */}
+            {spokenTranscript && (
+              <div className="p-5 bg-surface rounded-2xl border border-border space-y-3 shadow-google-sm animate-in fade-in duration-200">
+                <div className="text-xs font-semibold text-muted-foreground">Bạn đã nói:</div>
+                <div className="text-lg font-bold text-foreground leading-snug">"{spokenTranscript}"</div>
+
+                {speechEvaluation && (
+                  <div className="pt-3 border-t border-border space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Award className="w-5 h-5 text-warning" />
+                      <span className="text-sm font-bold text-foreground">Điểm phát âm: {speechEvaluation.score} / 100</span>
+                    </div>
+                    <p className="text-xs text-foreground-secondary bg-surface-hover p-3 rounded-xl border border-border leading-relaxed">
+                      {speechEvaluation.feedback}
+                    </p>
+                    {speechEvaluation.naturalAlternative && (
+                      <div className="text-xs text-muted-foreground">
+                        Cách nói tự nhiên hơn: <span className="text-success font-medium">{speechEvaluation.naturalAlternative}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </FeatureGate>
       )}
     </div>
   );

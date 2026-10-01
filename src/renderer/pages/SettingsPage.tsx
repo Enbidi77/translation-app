@@ -19,10 +19,16 @@ import {
   ExternalLink,
   Terminal,
   Activity,
-  AlertTriangle
+  AlertTriangle,
+  Lock,
+  Unlock,
+  ScanText,
+  Mic,
 } from 'lucide-react';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { useAppStore } from '../stores/useAppStore';
+import { useFeatureFlags } from '../useFeatureFlags';
+import { FEATURE_FLAGS, FeatureFlagId } from '../featureFlags';
 import { AppSettings } from '../../shared/types';
 import { ThemeMode, SubtitleThemeMode } from '../../shared/design/theme';
 import { ThemePreviewCard } from '../components/common/ThemePreviewCard';
@@ -35,6 +41,11 @@ export const SettingsPage: React.FC = () => {
   const [form, setForm] = useState<AppSettings>(settings);
   const [activeTab, setActiveTab] = useState<'general' | 'appearance' | 'providers' | 'hotkeys' | 'privacy' | 'logging'>('appearance');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Evaluate key availability considering both current form edits and saved settings
+  const hasGeminiKey = Boolean(form.providers.geminiApiKey?.trim() || settings.providers?.geminiApiKey?.trim());
+  const hasOpenAiKey = Boolean(form.providers.openaiApiKey?.trim() || settings.providers?.openaiApiKey?.trim());
+  const hasDeepLKey = Boolean(form.providers.deeplApiKey?.trim() || settings.providers?.deeplApiKey?.trim());
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -467,8 +478,16 @@ export const SettingsPage: React.FC = () => {
               </span>
             </div>
 
+            {/* 1. Translation Provider */}
             <div>
-              <label className="block text-muted-foreground mb-1 font-medium">Nhà cung cấp dịch thuật chính:</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-muted-foreground font-medium">Nhà cung cấp dịch thuật chính:</label>
+                {!hasDeepLKey && (
+                  <span className="text-[10px] text-muted-foreground">
+                    DeepL đã bị ẩn (cần nhập DeepL API Key bên dưới để mở khóa)
+                  </span>
+                )}
+              </div>
               <select
                 value={form.providers.translationProvider}
                 onChange={(e) =>
@@ -479,12 +498,42 @@ export const SettingsPage: React.FC = () => {
                 <option value="google_free">Google Dịch (Miễn phí, không cần Key)</option>
                 <option value="gemini">Google Gemini AI</option>
                 <option value="openai">OpenAI (GPT-4o Mini)</option>
-                <option value="deepl">DeepL Translation</option>
+                {hasDeepLKey && <option value="deepl">DeepL Translation (Đã mở khóa)</option>}
               </select>
             </div>
 
+            {/* 2. OCR Provider (Filter Gemini Vision if no key) */}
             <div>
-              <label className="block text-muted-foreground mb-1 font-medium">Nhà cung cấp phát âm giọng đọc (Text To Speech - TTS):</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-muted-foreground font-medium">Nhà cung cấp nhận diện ký tự (OCR):</label>
+                {!hasGeminiKey && (
+                  <span className="text-[10px] text-muted-foreground">
+                    Gemini Vision đã bị ẩn (cần Gemini API Key để mở khóa)
+                  </span>
+                )}
+              </div>
+              <select
+                value={form.providers.ocrProvider || 'tesseract'}
+                onChange={(e) =>
+                  setForm({ ...form, providers: { ...form.providers, ocrProvider: e.target.value as any } })
+                }
+                className="w-full bg-surface border border-border rounded-2xl p-2.5 text-foreground focus:outline-none focus:border-primary"
+              >
+                <option value="tesseract">Tesseract OCR (Miễn phí, ngoại tuyến)</option>
+                {hasGeminiKey && <option value="gemini">Google Gemini Vision OCR (Đa phương thức - Đã mở khóa)</option>}
+              </select>
+            </div>
+
+            {/* 3. TTS Provider (Filter OpenAI TTS if no key) */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-muted-foreground font-medium">Nhà cung cấp phát âm giọng đọc (Text To Speech - TTS):</label>
+                {!hasOpenAiKey && (
+                  <span className="text-[10px] text-muted-foreground">
+                    OpenAI TTS đã bị ẩn (cần OpenAI API Key để mở khóa)
+                  </span>
+                )}
+              </div>
               <select
                 value={form.providers.ttsProvider || 'google'}
                 onChange={(e) =>
@@ -493,17 +542,45 @@ export const SettingsPage: React.FC = () => {
                 className="w-full bg-surface border border-border rounded-2xl p-2.5 text-foreground focus:outline-none focus:border-primary"
               >
                 <option value="google">Google Natural TTS (Khuyên dùng - Chuẩn âm điệu Tiếng Trung, Tiếng Anh, Tiếng Việt)</option>
-                <option value="openai">OpenAI TTS (Sử dụng OpenAI API Key bên dưới)</option>
                 <option value="system">Hệ thống Windows (SpeechSynthesis SAPI)</option>
+                {hasOpenAiKey && <option value="openai">OpenAI TTS (Đã mở khóa)</option>}
+              </select>
+            </div>
+
+            {/* 4. STT Provider (Filter Whisper STT if no key) */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-muted-foreground font-medium">Nhà cung cấp nhận diện giọng nói (Speech-to-Text - STT):</label>
+                {!hasOpenAiKey && (
+                  <span className="text-[10px] text-muted-foreground">
+                    Whisper STT đã bị ẩn (cần OpenAI API Key để mở khóa)
+                  </span>
+                )}
+              </div>
+              <select
+                value={form.providers.sttProvider || 'system'}
+                onChange={(e) =>
+                  setForm({ ...form, providers: { ...form.providers, sttProvider: e.target.value as any } })
+                }
+                className="w-full bg-surface border border-border rounded-2xl p-2.5 text-foreground focus:outline-none focus:border-primary"
+              >
+                <option value="system">Hệ thống (Web Speech API / Micro Windows)</option>
+                <option value="gemini">Google Gemini STT</option>
+                {hasOpenAiKey && <option value="whisper">OpenAI Whisper STT (Đã mở khóa)</option>}
               </select>
             </div>
 
             {/* Gemini Settings */}
             <div className="p-4 bg-surface rounded-2xl border border-border space-y-3 shadow-google-sm">
-              <span className="font-bold text-foreground text-sm flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-warning" />
-                <span>Google Gemini API (Khuyên dùng cho Gia sư AI & Phân tích câu)</span>
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-warning" />
+                  <span>Google Gemini API (Gia sư AI, Phân tích câu, Gemini Vision)</span>
+                </span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${hasGeminiKey ? 'bg-success-muted text-success border border-success/30' : 'bg-muted-foreground/10 text-muted-foreground'}`}>
+                  {hasGeminiKey ? 'Đã kích hoạt' : 'Chưa cấu hình'}
+                </span>
+              </div>
 
               <div>
                 <label className="block text-muted-foreground mb-1">Gemini API Key:</label>
@@ -533,7 +610,15 @@ export const SettingsPage: React.FC = () => {
 
             {/* OpenAI Settings */}
             <div className="p-4 bg-surface rounded-2xl border border-border space-y-3 shadow-google-sm">
-              <span className="font-bold text-foreground text-sm">OpenAI API</span>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                  <Key className="w-4 h-4 text-primary" />
+                  <span>OpenAI API (GPT-4o Mini, OpenAI TTS, Whisper STT)</span>
+                </span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${hasOpenAiKey ? 'bg-success-muted text-success border border-success/30' : 'bg-muted-foreground/10 text-muted-foreground'}`}>
+                  {hasOpenAiKey ? 'Đã kích hoạt' : 'Chưa cấu hình'}
+                </span>
+              </div>
               <div>
                 <label className="block text-muted-foreground mb-1">OpenAI API Key:</label>
                 <input
@@ -545,6 +630,74 @@ export const SettingsPage: React.FC = () => {
                   placeholder="sk-proj-..."
                   className="w-full bg-surface-hover border border-border rounded-xl p-2.5 text-foreground font-mono focus:outline-none focus:border-primary"
                 />
+              </div>
+            </div>
+
+            {/* DeepL Settings */}
+            <div className="p-4 bg-surface rounded-2xl border border-border space-y-3 shadow-google-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                  <Key className="w-4 h-4 text-primary" />
+                  <span>DeepL API (Dịch thuật chất lượng cao DeepL)</span>
+                </span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${hasDeepLKey ? 'bg-success-muted text-success border border-success/30' : 'bg-muted-foreground/10 text-muted-foreground'}`}>
+                  {hasDeepLKey ? 'Đã kích hoạt' : 'Chưa cấu hình'}
+                </span>
+              </div>
+              <div>
+                <label className="block text-muted-foreground mb-1">DeepL API Key:</label>
+                <input
+                  type="password"
+                  value={form.providers.deeplApiKey || ''}
+                  onChange={(e) =>
+                    setForm({ ...form, providers: { ...form.providers, deeplApiKey: e.target.value } })
+                  }
+                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:fx"
+                  className="w-full bg-surface-hover border border-border rounded-xl p-2.5 text-foreground font-mono focus:outline-none focus:border-primary"
+                />
+              </div>
+            </div>
+
+            {/* Feature Flags Overview Matrix */}
+            <div className="p-4 bg-surface rounded-2xl border border-border space-y-3 shadow-google-sm">
+              <div className="flex items-center justify-between pb-2 border-b border-border">
+                <span className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-primary" />
+                  <span>Trạng thái mở khóa 8 tính năng hệ thống (Feature Flags)</span>
+                </span>
+                <span className="text-[11px] text-muted-foreground">Tự động kích hoạt khi có API Key tương ứng</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                {[
+                  { id: 'aiTutor', name: 'Gia sư AI', active: hasGeminiKey || hasOpenAiKey, req: 'Gemini / OpenAI' },
+                  { id: 'voice', name: 'Dịch giọng nói (STT)', active: hasGeminiKey || hasOpenAiKey, req: 'Gemini / OpenAI' },
+                  { id: 'subtitlesMic', name: 'Micro phụ đề', active: hasGeminiKey || hasOpenAiKey, req: 'Gemini / OpenAI' },
+                  { id: 'practiceSpeaking', name: 'Luyện nói phát âm', active: hasGeminiKey || hasOpenAiKey, req: 'Gemini / OpenAI' },
+                  { id: 'ocrGeminiVision', name: 'Gemini Vision OCR', active: hasGeminiKey, req: 'Gemini' },
+                  { id: 'translationDeepL', name: 'DeepL Dịch thuật', active: hasDeepLKey, req: 'DeepL' },
+                  { id: 'ttsOpenAI', name: 'OpenAI TTS', active: hasOpenAiKey, req: 'OpenAI' },
+                  { id: 'sttWhisper', name: 'Whisper STT', active: hasOpenAiKey, req: 'OpenAI' },
+                ].map((item) => (
+                  <div
+                    key={item.id}
+                    className={`p-2.5 rounded-xl border flex items-center justify-between text-xs transition-colors ${
+                      item.active
+                        ? 'bg-success-muted/20 border-success/30 text-foreground'
+                        : 'bg-surface-hover border-border text-muted-foreground'
+                    }`}
+                  >
+                    <div className="space-y-0.5 truncate">
+                      <div className="font-semibold text-[11px] truncate">{item.name}</div>
+                      <div className="text-[10px] text-muted-foreground">Cần: {item.req}</div>
+                    </div>
+                    {item.active ? (
+                      <Check className="w-3.5 h-3.5 text-success shrink-0 ml-1.5" />
+                    ) : (
+                      <Lock className="w-3.5 h-3.5 text-warning shrink-0 ml-1.5" />
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           </div>

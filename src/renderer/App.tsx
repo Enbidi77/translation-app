@@ -23,6 +23,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { LogsPage } from './pages/LogsPage';
 import { AppErrorBoundary } from './components/common/AppErrorBoundary';
 import { setupRendererErrorHandlers } from './services/logger-client';
+import { FeatureGate } from './FeatureGate';
 
 // Window Overlays
 import { SnipOverlay } from './windows/SnipOverlay';
@@ -83,13 +84,27 @@ const AppLayout: React.FC = () => {
             <Route path="/" element={<DashboardPage />} />
             <Route path="/translate" element={<TranslatePage />} />
             <Route path="/ocr" element={<OcrPage />} />
-            <Route path="/voice" element={<VoicePage />} />
+            <Route
+              path="/voice"
+              element={
+                <FeatureGate feature="voice" mode="page">
+                  <VoicePage />
+                </FeatureGate>
+              }
+            />
             <Route path="/subtitles" element={<SubtitlesPage />} />
             <Route path="/dictionary" element={<DictionaryPage />} />
             <Route path="/vocabulary" element={<VocabularyPage />} />
             <Route path="/flashcards" element={<FlashcardsPage />} />
             <Route path="/practice" element={<PracticePage />} />
-            <Route path="/ai-tutor" element={<AiTutorPage />} />
+            <Route
+              path="/ai-tutor"
+              element={
+                <FeatureGate feature="aiTutor" mode="page">
+                  <AiTutorPage />
+                </FeatureGate>
+              }
+            />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/statistics" element={<StatisticsPage />} />
             <Route path="/logs" element={<LogsPage />} />

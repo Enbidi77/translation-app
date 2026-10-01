@@ -1,5 +1,6 @@
 import { Tray, Menu, nativeImage, app } from 'electron';
 import path from 'path';
+import fs from 'fs';
 import { MainWindowManager } from '../windows/mainWindow';
 import { SnipWindowManager } from '../windows/snipWindow';
 import { SubtitleWindowManager } from '../windows/subtitleWindow';
@@ -18,13 +19,36 @@ export class TrayService {
   public createTray(): void {
     if (this.tray) return;
 
-    // Create a 16x16 icon programmatically if file doesn't exist
-    const icon = nativeImage.createFromBuffer(
-      Buffer.from(
-        'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAZElEQVQ4T2NkoBAwUqifgWoG/P//n5GBgYGBhYWFgZGRkYEvXbrEwMDAwMDKysrAwMDAwMLCwsDGxgaxA6mGEQsGagBIM4ymBng0DBhGA9A0gA0m+sGAgQEIjUZHR8MoH2QEAO/pD5f5JvTTAAAAAElFTkSuQmCC',
-        'base64'
-      )
-    );
+    let icon: Electron.NativeImage | null = null;
+    const possibleTrayPaths = [
+      path.join(app.getAppPath(), 'assets/icon.png'),
+      path.join(process.resourcesPath, 'assets/icon.png'),
+      path.join(__dirname, '../../assets/icon.png'),
+      path.join(app.getAppPath(), 'assets/icon.ico'),
+      path.join(process.resourcesPath, 'assets/icon.ico'),
+      path.join(__dirname, '../../assets/icon.ico'),
+    ];
+
+    const iconPath = possibleTrayPaths.find((p) => fs.existsSync(p));
+    if (iconPath) {
+      try {
+        const loaded = nativeImage.createFromPath(iconPath);
+        if (!loaded.isEmpty()) {
+          icon = loaded.resize({ width: 16, height: 16 });
+        }
+      } catch (e) {
+        console.warn('[TrayService] Could not load tray icon from path:', e);
+      }
+    }
+
+    if (!icon || icon.isEmpty()) {
+      icon = nativeImage.createFromBuffer(
+        Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAZElEQVQ4T2NkoBAwUqifgWoG/P//n5GBgYGBhYWFgZGRkYEvXbrEwMDAwMDKysrAwMDAwMLCwsDGxgaxA6mGEQsGagBIM4ymBng0DBhGA9A0gA0m+sGAgQEIjUZHR8MoH2QEAO/pD5f5JvTTAAAAAElFTkSuQmCC',
+          'base64'
+        )
+      );
+    }
 
     this.tray = new Tray(icon);
     this.tray.setToolTip('PolyglotDesktop - Trợ Lý Học Ngoại Ngữ');

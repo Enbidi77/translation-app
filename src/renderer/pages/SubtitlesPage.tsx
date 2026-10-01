@@ -21,7 +21,8 @@ import {
   Key,
   ArrowRight,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Upload,
 } from 'lucide-react';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { useAppStore } from '../stores/useAppStore';
@@ -29,6 +30,7 @@ import { TonePinyin } from '../components/common/TonePinyin';
 import { AudioPlayer } from '../components/common/AudioPlayer';
 import { SubtitleThemeMode } from '../../shared/design/theme';
 import { soundManager } from '../services/audioService';
+import { FeatureGate } from '../FeatureGate';
 
 interface SubtitleLine {
   id: number;
@@ -371,6 +373,57 @@ export const SubtitlesPage: React.FC = () => {
     showToast('Đã tải xuống tệp VTT!', 'success');
   };
 
+  const handleImportSrt = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      if (!content) return;
+
+      const blocks = content.replace(/\r\n/g, '\n').split(/\n\n+/);
+      const parsed: SubtitleLine[] = [];
+
+      blocks.forEach((block) => {
+        const lines = block.trim().split('\n');
+        if (lines.length >= 2) {
+          let timeLineIdx = 0;
+          if (!lines[0].includes('-->') && lines.length > 1 && lines[1].includes('-->')) {
+            timeLineIdx = 1;
+          }
+          const timeMatch = lines[timeLineIdx]?.split('-->');
+          if (timeMatch && timeMatch.length === 2) {
+            const startTime = timeMatch[0].trim();
+            const endTime = timeMatch[1].trim();
+            const textLines = lines.slice(timeLineIdx + 1).map((l) => l.trim()).filter(Boolean);
+            const chinese = textLines[0] || '';
+            const pinyin = textLines.length > 2 ? textLines[1] : '';
+            const vietnamese = textLines.length > 2 ? textLines[2] : (textLines[1] || textLines[0] || '');
+
+            parsed.push({
+              id: parsed.length + 1,
+              startTime,
+              endTime,
+              chinese,
+              pinyin,
+              vietnamese,
+            });
+          }
+        }
+      });
+
+      if (parsed.length > 0) {
+        setSubtitlesList(parsed);
+        showToast(`Đã nhập thành công ${parsed.length} dòng phụ đề từ tệp SRT!`, 'success');
+      } else {
+        showToast('Không tìm thấy định dạng phụ đề SRT hợp lệ trong tệp.', 'warning');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  };
+
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto overflow-y-auto">
       {/* Title & Floating Window Master Toggle */}
@@ -412,147 +465,108 @@ export const SubtitlesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Quick API Key Banner if not set */}
-      {!hasApiKey && (
-        <div className="p-4 bg-primary-muted border border-primary/30 rounded-3xl space-y-3 shadow-google-sm">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+      {/* Real-Time Live Microphone & Broadcast Station (Gated by Feature Flag) */}
+      <FeatureGate
+        feature="subtitlesMic"
+        title="Dịch & Phát Phụ Đề Trực Tiếp Qua Micro"
+        description="Thu âm giọng nói trực tiếp để dịch và tự động nhảy phụ đề nổi lên màn hình. Cần Gemini API Key hoặc OpenAI API Key."
+      >
+        <div className="p-6 bg-card border border-border rounded-3xl space-y-5 shadow-google-md">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border">
+            <div className="flex items-center gap-2">
+              <Radio className="w-5 h-5 text-primary" />
+              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">
+                Dịch & Phát Phụ Đề Trực Tiếp Thời Gian Thực (Live Translation Stream)
+              </h2>
+            </div>
+
+            {/* Language selector */}
             <div className="flex items-center gap-2 text-xs">
-              <Key className="w-4 h-4 text-primary" />
-              <span className="font-bold text-foreground">
-                Để nhận diện giọng nói trực tiếp qua Micro (Live Speech-to-Text):
-              </span>
+              <span className="text-muted-foreground font-medium">Nói:</span>
+              <select
+                value={sourceLang}
+                onChange={(e) => setSourceLang(e.target.value as any)}
+                className="bg-surface border border-border text-foreground rounded-xl px-2.5 py-1 text-xs focus:outline-none focus:border-primary shadow-google-sm"
+              >
+                <option value="zh-CN">Tiếng Trung (zh-CN)</option>
+                <option value="en-US">Tiếng Anh (en-US)</option>
+                <option value="vi-VN">Tiếng Việt (vi-VN)</option>
+              </select>
+
+              <span className="text-muted-foreground font-bold">→</span>
+
+              <select
+                value={targetLang}
+                onChange={(e) => setTargetLang(e.target.value as any)}
+                className="bg-surface border border-border text-foreground rounded-xl px-2.5 py-1 text-xs focus:outline-none focus:border-primary shadow-google-sm"
+              >
+                <option value="vi">Tiếng Việt</option>
+                <option value="zh">Tiếng Trung</option>
+                <option value="en">Tiếng Anh</option>
+              </select>
             </div>
-            <a
-              href="https://aistudio.google.com/app/apikey"
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
-            >
-              <span>Lấy Gemini API Key miễn phí 100% tại Google AI Studio</span>
-              <ArrowRight className="w-3 h-3" />
-            </a>
           </div>
 
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Dán Google Gemini API Key bên dưới để kích hoạt tính năng micro nhận diện tiếng Trung / Anh / Việt:
-          </p>
+          {/* Live Mic Action & Quick Manual Text Broadcast */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            {/* Live Micro Button */}
+            <div className="p-4 bg-surface rounded-2xl border border-border flex items-center justify-between shadow-google-sm">
+              <div>
+                <span className="text-xs font-bold text-foreground block">Thu âm qua Micro:</span>
+                <span className="text-[11px] text-muted-foreground">
+                  {isListening ? 'Đang lắng nghe & phát phụ đề...' : 'Nói để phụ đề nổi tự nhảy chữ'}
+                </span>
+              </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="password"
-              value={quickKeyInput}
-              onChange={(e) => setQuickKeyInput(e.target.value)}
-              placeholder="Dán Gemini API Key (AIzaSy...)"
-              className="flex-1 bg-surface border border-border text-foreground px-3.5 py-2 rounded-2xl text-xs focus:outline-none focus:border-primary shadow-google-sm font-mono"
-            />
-            <button
-              onClick={handleSaveQuickKey}
-              disabled={isSavingKey || !quickKeyInput.trim()}
-              className="px-4 py-2 rounded-2xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-primary-foreground font-semibold text-xs shadow-google-sm transition-all flex items-center gap-1.5 shrink-0"
-            >
-              {isSavingKey ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-              <span>Lưu & Bắt đầu</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Real-Time Live Microphone & Broadcast Station */}
-      <div className="p-6 bg-card border border-border rounded-3xl space-y-5 shadow-google-md">
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border">
-          <div className="flex items-center gap-2">
-            <Radio className="w-5 h-5 text-primary" />
-            <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">
-              Dịch & Phát Phụ Đề Trực Tiếp Thời Gian Thực (Live Translation Stream)
-            </h2>
-          </div>
-
-          {/* Language selector */}
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-muted-foreground font-medium">Nói:</span>
-            <select
-              value={sourceLang}
-              onChange={(e) => setSourceLang(e.target.value as any)}
-              className="bg-surface border border-border text-foreground rounded-xl px-2.5 py-1 text-xs focus:outline-none focus:border-primary shadow-google-sm"
-            >
-              <option value="zh-CN">Tiếng Trung (zh-CN)</option>
-              <option value="en-US">Tiếng Anh (en-US)</option>
-              <option value="vi-VN">Tiếng Việt (vi-VN)</option>
-            </select>
-
-            <span className="text-muted-foreground font-bold">→</span>
-
-            <select
-              value={targetLang}
-              onChange={(e) => setTargetLang(e.target.value as any)}
-              className="bg-surface border border-border text-foreground rounded-xl px-2.5 py-1 text-xs focus:outline-none focus:border-primary shadow-google-sm"
-            >
-              <option value="vi">Tiếng Việt</option>
-              <option value="zh">Tiếng Trung</option>
-              <option value="en">Tiếng Anh</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Live Mic Action & Quick Manual Text Broadcast */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-          {/* Live Micro Button */}
-          <div className="p-4 bg-surface rounded-2xl border border-border flex items-center justify-between shadow-google-sm">
-            <div>
-              <span className="text-xs font-bold text-foreground block">Thu âm qua Micro:</span>
-              <span className="text-[11px] text-muted-foreground">
-                {isListening ? 'Đang lắng nghe & phát phụ đề...' : 'Nói để phụ đề nổi tự nhảy chữ'}
-              </span>
+              <button
+                onClick={handleToggleLiveListening}
+                disabled={isProcessing}
+                className={`p-3 rounded-2xl font-semibold text-xs shadow-google-sm transition-all flex items-center gap-2 ${
+                  isListening
+                    ? 'bg-destructive text-destructive-foreground animate-pulse'
+                    : 'bg-primary hover:bg-primary-hover text-primary-foreground'
+                }`}
+                title={isListening ? 'Dừng thu âm trực tiếp' : 'Bật thu âm phụ đề trực tiếp'}
+              >
+                {isProcessing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : isListening ? (
+                  <MicOff className="w-4 h-4" />
+                ) : (
+                  <Mic className="w-4 h-4" />
+                )}
+                <span>{isListening ? 'Đang Thu' : 'Bật Micro'}</span>
+              </button>
             </div>
 
-            <button
-              onClick={handleToggleLiveListening}
-              disabled={isProcessing}
-              className={`p-3 rounded-2xl font-semibold text-xs shadow-google-sm transition-all flex items-center gap-2 ${
-                isListening
-                  ? 'bg-destructive text-destructive-foreground animate-pulse'
-                  : 'bg-primary hover:bg-primary-hover text-primary-foreground'
-              }`}
-              title={isListening ? 'Dừng thu âm trực tiếp' : 'Bật thu âm phụ đề trực tiếp'}
-            >
-              {isProcessing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : isListening ? (
-                <MicOff className="w-4 h-4" />
-              ) : (
-                <Mic className="w-4 h-4" />
-              )}
-              <span>{isListening ? 'Đang Thu' : 'Bật Micro'}</span>
-            </button>
-          </div>
-
-          {/* Quick Manual Text Broadcast to Screen */}
-          <div className="md:col-span-2 p-2 bg-surface rounded-2xl border border-border flex items-center gap-2 shadow-google-sm">
-            <input
-              type="text"
-              value={quickInput}
-              onChange={(e) => setQuickInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleQuickBroadcast();
-              }}
-              placeholder="Nhập hoặc dán câu tiếng Trung/Anh để phát âm thanh & phụ đề lên màn hình ngay..."
-              className="flex-1 bg-transparent px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
-            />
-            <button
-              onClick={handleQuickBroadcast}
-              disabled={!quickInput.trim() || isQuickBroadcasting}
-              className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs shadow-google-sm flex items-center gap-1.5 disabled:opacity-50 transition-all shrink-0"
-            >
-              {isQuickBroadcasting ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Sparkles className="w-3.5 h-3.5" />
-              )}
-              <span>Phát Phụ Đề</span>
-            </button>
+            {/* Quick Manual Text Broadcast to Screen */}
+            <div className="md:col-span-2 p-2 bg-surface rounded-2xl border border-border flex items-center gap-2 shadow-google-sm">
+              <input
+                type="text"
+                value={quickInput}
+                onChange={(e) => setQuickInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleQuickBroadcast();
+                }}
+                placeholder="Nhập hoặc dán câu tiếng Trung/Anh để phát âm thanh & phụ đề lên màn hình ngay..."
+                className="flex-1 bg-transparent px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
+              />
+              <button
+                onClick={handleQuickBroadcast}
+                disabled={!quickInput.trim() || isQuickBroadcasting}
+                className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs shadow-google-sm flex items-center gap-1.5 disabled:opacity-50 transition-all shrink-0"
+              >
+                {isQuickBroadcasting ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5" />
+                )}
+                <span>Phát Phụ Đề</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </FeatureGate>
 
       {/* Floating Subtitle Controls & Visual Configuration */}
       <div className="p-6 bg-card border border-border rounded-3xl space-y-4 shadow-google-md">
@@ -639,6 +653,16 @@ export const SubtitlesPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <label className="px-3.5 py-1.5 rounded-xl bg-surface hover:bg-surface-hover text-foreground border border-border text-xs font-medium flex items-center gap-1.5 transition-colors shadow-google-sm cursor-pointer" title="Nhập tệp phụ đề .srt ngoại tuyến hoàn toàn miễn phí">
+              <Upload className="w-3.5 h-3.5 text-primary" />
+              <span>Nhập SRT</span>
+              <input
+                type="file"
+                accept=".srt"
+                onChange={handleImportSrt}
+                className="hidden"
+              />
+            </label>
             <button
               onClick={handleExportSrt}
               className="px-3.5 py-1.5 rounded-xl bg-surface hover:bg-surface-hover text-foreground border border-border text-xs font-medium flex items-center gap-1.5 transition-colors shadow-google-sm"

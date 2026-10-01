@@ -3,6 +3,7 @@ import { Minus, Square, X, Crop, Globe, Sun, Moon, Monitor } from 'lucide-react'
 import { useSettingsStore } from '../../stores/useSettingsStore';
 import { I18nLocale } from '../../i18n';
 import { ThemeMode } from '../../../shared/design/theme';
+import appLogo from '../../../../assets/icon.png';
 
 export const Header: React.FC = () => {
   const { locale, setLocale, themeMode, setThemeMode, dict } = useSettingsStore();
@@ -17,9 +18,11 @@ export const Header: React.FC = () => {
       {/* Left: App Brand & Quick Action */}
       <div className="flex items-center gap-3 titlebar-no-drag">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">
-            P
-          </div>
+          <img
+            src={appLogo}
+            alt="Polyglot Desktop Logo"
+            className="w-6 h-6 rounded-md object-contain shadow-sm"
+          />
           <span className="font-semibold text-xs text-foreground tracking-wide">
             Polyglot<span className="text-primary font-normal">Desktop</span>
           </span>

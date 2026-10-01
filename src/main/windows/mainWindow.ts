@@ -1,5 +1,6 @@
 import { BrowserWindow, app } from 'electron';
 import path from 'path';
+import fs from 'fs';
 
 export class MainWindowManager {
   private static instance: MainWindowManager | null = null;
@@ -25,12 +26,21 @@ export class MainWindowManager {
 
     const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
+    const possibleIconPaths = [
+      path.join(app.getAppPath(), 'assets/icon.ico'),
+      path.join(process.resourcesPath, 'assets/icon.ico'),
+      path.join(__dirname, '../../assets/icon.ico'),
+      path.join(app.getAppPath(), 'assets/icon.png'),
+    ];
+    const windowIcon = possibleIconPaths.find((p) => fs.existsSync(p));
+
     this.window = new BrowserWindow({
       width: 1280,
       height: 840,
       minWidth: 1024,
       minHeight: 680,
       title: 'PolyglotDesktop - Trợ Lý Học Tiếng Trung & Tiếng Anh',
+      icon: windowIcon,
       backgroundColor: '#202124',
       frame: false,
       titleBarStyle: 'hidden',

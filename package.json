@@ -13,6 +13,8 @@
     "build:electron": "tsup src/main/index.ts src/preload/index.ts --format cjs --out-dir dist-electron --external electron && node scripts/copy-wasm.js",
     "build": "npm run build:renderer && npm run build:electron",
     "dist": "npm run build && electron-builder",
+    "dist:msix": "powershell -ExecutionPolicy Bypass -File scripts/build-msix.ps1",
+    "icons": "powershell -ExecutionPolicy Bypass -File scripts/generate-icons.ps1",
     "test": "vitest run",
     "lint": "tsc --noEmit"
   },
@@ -20,13 +22,16 @@
     "appId": "com.polyglot.desktop",
     "productName": "PolyglotDesktop",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "files": [
       "dist/**/*",
-      "dist-electron/**/*"
+      "dist-electron/**/*",
+      "assets/**/*"
     ],
     "win": {
+      "icon": "assets/icon.ico",
       "target": [
         "nsis",
         "portable"
@@ -35,6 +40,10 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
+    },
+    "appx": {
+      "applicationId": "PolyglotDesktop",
+      "displayName": "Polyglot Desktop"
     }
   },
   "dependencies": {
