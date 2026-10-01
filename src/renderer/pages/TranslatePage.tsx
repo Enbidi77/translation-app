@@ -20,6 +20,7 @@ import { TranslationResponse, SupportedLanguage, TranslationQualityMode } from '
 import { POPULAR_LANGUAGES } from '../../shared/constants/languages';
 import { TonePinyin } from '../components/common/TonePinyin';
 import { AudioPlayer } from '../components/common/AudioPlayer';
+import { FeatureGate } from '@/FeatureGate';
 
 export const TranslatePage: React.FC = () => {
   const { dict } = useSettingsStore();
@@ -402,104 +403,109 @@ export const TranslatePage: React.FC = () => {
             </div>
           )}
 
-          {/* AI In-Depth Sentence Analysis Section */}
-          {result.analysis && (
-            <div className="pt-4 border-t border-border space-y-4">
-              <div 
-                onClick={() => setShowAnalysis(!showAnalysis)}
-                className="flex items-center justify-between cursor-pointer py-1 text-foreground-secondary hover:text-foreground transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-warning" />
-                  <span className="font-semibold text-sm">Phân tích cú pháp & Lỗi thường gặp cho người Việt</span>
+          <FeatureGate
+            feature="analysisShow"
+            mode="hide"
+          >
+            {/* AI In-Depth Sentence Analysis Section */}
+            {result.analysis && (
+              <div className="pt-4 border-t border-border space-y-4">
+                <div 
+                  onClick={() => setShowAnalysis(!showAnalysis)}
+                  className="flex items-center justify-between cursor-pointer py-1 text-foreground-secondary hover:text-foreground transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-warning" />
+                    <span className="font-semibold text-sm">Phân tích cú pháp & Lỗi thường gặp cho người Việt</span>
+                  </div>
+                  {showAnalysis ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </div>
-                {showAnalysis ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </div>
 
-              {showAnalysis && (
-                <div className="space-y-4 text-xs animate-in fade-in duration-200">
-                  {/* Grammatical Structure Chips */}
-                  {result.analysis.structure && (
-                    <div className="p-4 bg-surface rounded-2xl border border-border space-y-2 shadow-google-sm">
-                      <span className="font-semibold text-muted-foreground uppercase tracking-wider text-[11px]">
-                        Cấu trúc ngữ pháp câu (Sentence Structure):
-                      </span>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                        {result.analysis.structure.subject && (
-                          <div className="p-2.5 rounded-xl bg-surface-hover border border-border">
-                            <span className="text-muted-foreground block text-[10px]">Chủ ngữ (Subject):</span>
-                            <span className="font-semibold text-foreground">{result.analysis.structure.subject}</span>
-                          </div>
-                        )}
-                        {result.analysis.structure.adverbial && (
-                          <div className="p-2.5 rounded-xl bg-surface-hover border border-border">
-                            <span className="text-muted-foreground block text-[10px]">Phó từ/Trạng ngữ:</span>
-                            <span className="font-semibold text-warning">{result.analysis.structure.adverbial}</span>
-                          </div>
-                        )}
-                        {result.analysis.structure.predicate && (
-                          <div className="p-2.5 rounded-xl bg-surface-hover border border-border">
-                            <span className="text-muted-foreground block text-[10px]">Vị ngữ (Verb):</span>
-                            <span className="font-semibold text-success">{result.analysis.structure.predicate}</span>
-                          </div>
-                        )}
-                        {result.analysis.structure.object && (
-                          <div className="p-2.5 rounded-xl bg-surface-hover border border-border">
-                            <span className="text-muted-foreground block text-[10px]">Tân ngữ (Object):</span>
-                            <span className="font-semibold text-primary">{result.analysis.structure.object}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Vietnamese Transfer Error Detection & Tip */}
-                  {result.analysis.vietnameseLearnerTips && (
-                    <div className="p-4 bg-warning-muted border border-warning/30 rounded-2xl space-y-2">
-                      <div className="flex items-center gap-2 text-warning font-semibold text-xs">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
-                        <span>{dict.translate.vietnameseTipTitle}:</span>
-                        <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-surface text-warning border border-warning/30 font-medium">
-                          {result.analysis.vietnameseLearnerTips.naturalnessScore || 'Mức độ tự nhiên: Tốt'}
+                {showAnalysis && (
+                  <div className="space-y-4 text-xs animate-in fade-in duration-200">
+                    {/* Grammatical Structure Chips */}
+                    {result.analysis.structure && (
+                      <div className="p-4 bg-surface rounded-2xl border border-border space-y-2 shadow-google-sm">
+                        <span className="font-semibold text-muted-foreground uppercase tracking-wider text-[11px]">
+                          Cấu trúc ngữ pháp câu (Sentence Structure):
                         </span>
-                      </div>
-                      <p className="text-foreground leading-relaxed">
-                        {result.analysis.vietnameseLearnerTips.explanation || result.analysis.vietnameseLearnerTips.commonMistake}
-                      </p>
-                      {result.analysis.vietnameseLearnerTips.naturalAlternative && (
-                        <div className="pt-2 border-t border-warning/20 flex items-center gap-2">
-                          <span className="text-muted-foreground">Cách nói bản xứ khuyên dùng:</span>
-                          <span className="font-semibold text-foreground">{result.analysis.vietnameseLearnerTips.naturalAlternative}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Grammar Points */}
-                  {result.analysis.grammarPoints && result.analysis.grammarPoints.length > 0 && (
-                    <div className="space-y-2">
-                      <span className="font-semibold text-muted-foreground uppercase tracking-wider text-[11px]">
-                        {dict.translate.grammarTitle}:
-                      </span>
-                      {result.analysis.grammarPoints.map((gp, i) => (
-                        <div key={i} className="p-4 bg-surface rounded-2xl border border-border space-y-1 shadow-google-sm">
-                          <div className="font-bold text-foreground">{gp.title}</div>
-                          <p className="text-foreground-secondary leading-relaxed">{gp.explanation}</p>
-                          {gp.examples && gp.examples.length > 0 && (
-                            <ul className="list-disc list-inside space-y-0.5 text-muted-foreground pl-1 pt-1">
-                              {gp.examples.map((ex, j) => (
-                                <li key={j} className="text-foreground-secondary">{ex}</li>
-                              ))}
-                            </ul>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                          {result.analysis.structure.subject && (
+                            <div className="p-2.5 rounded-xl bg-surface-hover border border-border">
+                              <span className="text-muted-foreground block text-[10px]">Chủ ngữ (Subject):</span>
+                              <span className="font-semibold text-foreground">{result.analysis.structure.subject}</span>
+                            </div>
+                          )}
+                          {result.analysis.structure.adverbial && (
+                            <div className="p-2.5 rounded-xl bg-surface-hover border border-border">
+                              <span className="text-muted-foreground block text-[10px]">Phó từ/Trạng ngữ:</span>
+                              <span className="font-semibold text-warning">{result.analysis.structure.adverbial}</span>
+                            </div>
+                          )}
+                          {result.analysis.structure.predicate && (
+                            <div className="p-2.5 rounded-xl bg-surface-hover border border-border">
+                              <span className="text-muted-foreground block text-[10px]">Vị ngữ (Verb):</span>
+                              <span className="font-semibold text-success">{result.analysis.structure.predicate}</span>
+                            </div>
+                          )}
+                          {result.analysis.structure.object && (
+                            <div className="p-2.5 rounded-xl bg-surface-hover border border-border">
+                              <span className="text-muted-foreground block text-[10px]">Tân ngữ (Object):</span>
+                              <span className="font-semibold text-primary">{result.analysis.structure.object}</span>
+                            </div>
                           )}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+                      </div>
+                    )}
+
+                    {/* Vietnamese Transfer Error Detection & Tip */}
+                    {result.analysis.vietnameseLearnerTips && (
+                      <div className="p-4 bg-warning-muted border border-warning/30 rounded-2xl space-y-2">
+                        <div className="flex items-center gap-2 text-warning font-semibold text-xs">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <span>{dict.translate.vietnameseTipTitle}:</span>
+                          <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-surface text-warning border border-warning/30 font-medium">
+                            {result.analysis.vietnameseLearnerTips.naturalnessScore || 'Mức độ tự nhiên: Tốt'}
+                          </span>
+                        </div>
+                        <p className="text-foreground leading-relaxed">
+                          {result.analysis.vietnameseLearnerTips.explanation || result.analysis.vietnameseLearnerTips.commonMistake}
+                        </p>
+                        {result.analysis.vietnameseLearnerTips.naturalAlternative && (
+                          <div className="pt-2 border-t border-warning/20 flex items-center gap-2">
+                            <span className="text-muted-foreground">Cách nói bản xứ khuyên dùng:</span>
+                            <span className="font-semibold text-foreground">{result.analysis.vietnameseLearnerTips.naturalAlternative}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Grammar Points */}
+                    {result.analysis.grammarPoints && result.analysis.grammarPoints.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="font-semibold text-muted-foreground uppercase tracking-wider text-[11px]">
+                          {dict.translate.grammarTitle}:
+                        </span>
+                        {result.analysis.grammarPoints.map((gp, i) => (
+                          <div key={i} className="p-4 bg-surface rounded-2xl border border-border space-y-1 shadow-google-sm">
+                            <div className="font-bold text-foreground">{gp.title}</div>
+                            <p className="text-foreground-secondary leading-relaxed">{gp.explanation}</p>
+                            {gp.examples && gp.examples.length > 0 && (
+                              <ul className="list-disc list-inside space-y-0.5 text-muted-foreground pl-1 pt-1">
+                                {gp.examples.map((ex, j) => (
+                                  <li key={j} className="text-foreground-secondary">{ex}</li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </FeatureGate>
         </div>
       )}
     </div>

@@ -23,13 +23,22 @@ import { useSettingsStore } from '../../stores/useSettingsStore';
 import { useFlashcardStore } from '../../stores/useFlashcardStore';
 import { useFeatureFlags } from '../../useFeatureFlags';
 
+interface NavItem {
+  to: string;
+  label: string;
+  icon: any;
+  isLocked?: boolean;
+  requiredKeyHint?: string;
+  badge?: number | string;
+}
+
 export const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { dict } = useSettingsStore();
   const { stats } = useFlashcardStore();
   const { isVoiceEnabled, isAiTutorEnabled } = useFeatureFlags();
 
-  const navItems = [
+  const navItems: NavItem[] = [
     { to: '/', label: dict.sidebar.dashboard, icon: LayoutDashboard },
     { to: '/translate', label: dict.sidebar.translate, icon: Languages },
     { to: '/ocr', label: dict.sidebar.ocr, icon: ScanText },
@@ -43,22 +52,22 @@ export const Sidebar: React.FC = () => {
     { to: '/subtitles', label: dict.sidebar.subtitles, icon: Subtitles },
     { to: '/dictionary', label: dict.sidebar.dictionary, icon: BookA },
     { to: '/vocabulary', label: dict.sidebar.vocabulary, icon: BookOpen },
-    { 
-      to: '/flashcards', 
-      label: dict.sidebar.flashcards, 
-      icon: Layers,
-      badge: stats.due > 0 ? stats.due : undefined,
-    },
+    // { 
+    //   to: '/flashcards', 
+    //   label: dict.sidebar.flashcards, 
+    //   icon: Layers,
+    //   badge: stats.due > 0 ? stats.due : undefined,
+    // },
     { to: '/practice', label: dict.sidebar.practice, icon: Headphones },
-    {
-      to: '/ai-tutor',
-      label: dict.sidebar.aiTutor,
-      icon: Bot,
-      isLocked: !isAiTutorEnabled,
-      requiredKeyHint: 'Gemini / OpenAI Key',
-    },
+    // {
+    //   to: '/ai-tutor',
+    //   label: dict.sidebar.aiTutor,
+    //   icon: Bot,
+    //   isLocked: !isAiTutorEnabled,
+    //   requiredKeyHint: 'Gemini / OpenAI Key',
+    // },
     { to: '/history', label: dict.sidebar.history, icon: History },
-    { to: '/statistics', label: dict.sidebar.statistics, icon: BarChart3 },
+    // { to: '/statistics', label: dict.sidebar.statistics, icon: BarChart3 },
     { to: '/logs', label: dict.sidebar.logs, icon: ScrollText },
     { to: '/settings', label: dict.sidebar.settings, icon: Settings },
   ];

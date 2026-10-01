@@ -8,7 +8,10 @@ export type FeatureFlagId =
   | 'ocrGeminiVision'
   | 'translationDeepL'
   | 'ttsOpenAI'
-  | 'sttWhisper';
+  | 'sttWhisper'
+  | 'analysisShow'
+  | 'flashcards'
+  | 'dashboardStatsShow';
 
 export type FeatureFlag = FeatureFlagId;
 
@@ -102,6 +105,30 @@ export const FEATURE_FLAGS: Record<FeatureFlagId, FeatureFlagMeta> = {
     requiredKeyDescription: 'OpenAI API Key',
     check: (providers) => Boolean(providers?.openaiApiKey?.trim()),
   },
+  analysisShow: {
+    id: 'analysisShow',
+    name: 'Hiển thị phân tích câu',
+    description: 'Hiển thị phân tích cú pháp và lỗi thường gặp cho người Việt.',
+    requiredKeys: [],
+    requiredKeyDescription: '',
+    check: () => false,
+  },
+  flashcards: {
+    id: 'flashcards',
+    name: 'Flashcards nâng cao',
+    description: 'Tạo flashcards thông minh với AI, hỗ trợ nhiều chế độ học tập và nhắc nhở.',
+    requiredKeys: ['geminiApiKey', 'openaiApiKey'],
+    requiredKeyDescription: 'Gemini hoặc OpenAI API Key',
+    check: () => false,
+  },
+  dashboardStatsShow: {
+    id: 'dashboardStatsShow',
+    name: 'Hiển thị thống kê trên Dashboard',
+    description: 'Hiển thị thống kê tiến trình học tập và flashcards trên trang Dashboard.',
+    requiredKeys: [],
+    requiredKeyDescription: '',
+    check: () => false,
+  },
 };
 
 export function isFeatureEnabled(flag: FeatureFlagId, settings?: AppSettings | null): boolean {
@@ -121,6 +148,9 @@ export function getAllFeatureFlags(settings?: AppSettings | null): Record<Featur
     translationDeepL: FEATURE_FLAGS.translationDeepL.check(providers),
     ttsOpenAI: FEATURE_FLAGS.ttsOpenAI.check(providers),
     sttWhisper: FEATURE_FLAGS.sttWhisper.check(providers),
+    analysisShow: FEATURE_FLAGS.analysisShow.check(providers),
+    flashcards: FEATURE_FLAGS.flashcards.check(providers),
+    dashboardStatsShow: FEATURE_FLAGS.dashboardStatsShow.check(providers),
   };
 }
 
