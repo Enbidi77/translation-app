@@ -1,16 +1,27 @@
 import { BrowserWindow, app } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import { SettingsRepository } from '../../database/repositories/settingsRepository';
+import { IPC_CHANNELS } from '../../shared/constants/ipc';
 
 export class MainWindowManager {
   private static instance: MainWindowManager | null = null;
   private window: BrowserWindow | null = null;
+  private isForceQuitting: boolean = false;
 
   public static getInstance(): MainWindowManager {
     if (!MainWindowManager.instance) {
       MainWindowManager.instance = new MainWindowManager();
     }
     return MainWindowManager.instance;
+  }
+
+  public setForceQuitting(flag: boolean): void {
+    this.isForceQuitting = flag;
+  }
+
+  public isForceQuit(): boolean {
+    return this.isForceQuitting;
   }
 
   public getWindow(): BrowserWindow | null {
@@ -62,6 +73,37 @@ export class MainWindowManager {
 
     this.window.once('ready-to-show', () => {
       this.window?.show();
+    });
+
+    this.window.on('close', (event) => {
+      if (this.isForceQuitting) {
+        return;
+      }
+
+      const settings = new SettingsRepository().getSettings();
+      const action = settings.general?.closeAction || 'ask';
+
+      if (action === 'exit') {
+        this.isForceQuitting = true;
+        app.quit();
+        return;
+      }
+
+      if (action === 'minimize_to_tray') {
+        event.preventDefault();
+        this.window?.hide();
+        return;
+      }
+
+      // Default: 'ask' -> prevent window destroy, prompt the user
+      event.preventDefault();
+      if (this.window && !this.window.isDestroyed()) {
+        if (!this.window.isVisible()) {
+          this.window.show();
+        }
+        this.window.focus();
+        this.window.webContents.send(IPC_CHANNELS.EVENT_REQUEST_CLOSE);
+      }
     });
 
     this.window.on('closed', () => {

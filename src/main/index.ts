@@ -115,7 +115,8 @@ app.whenReady().then(bootstrap);
 
 app.on('window-all-closed', () => {
   const settings = new SettingsRepository().getSettings();
-  if (!settings.general.minimizeToTray) {
+  const closeAction = settings.general?.closeAction || (settings.general?.minimizeToTray ? 'minimize_to_tray' : 'exit');
+  if (closeAction === 'exit' || !settings.general?.minimizeToTray) {
     shutdownReason = 'window_closed';
     app.quit();
   }
@@ -128,6 +129,7 @@ app.on('activate', () => {
 });
 
 app.on('before-quit', () => {
+  MainWindowManager.getInstance().setForceQuitting(true);
   logger.info('Application shutdown', {
     category: 'shutdown',
     module: 'main',

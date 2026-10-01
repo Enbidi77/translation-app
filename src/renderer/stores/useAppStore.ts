@@ -8,6 +8,11 @@ interface AppState {
   openWordModal: (word: WordToken) => void;
   closeWordModal: () => void;
 
+  // Close Application Confirmation Dialog
+  isCloseDialogOpen: boolean;
+  openCloseDialog: () => void;
+  closeCloseDialog: () => void;
+
   // Global Toast
   toastMessage: string | null;
   toastType: 'info' | 'success' | 'warning' | 'error';
@@ -20,6 +25,10 @@ export const useAppStore = create<AppState>((set) => ({
   isWordModalOpen: false,
   openWordModal: (word) => set({ selectedWord: word, isWordModalOpen: true }),
   closeWordModal: () => set({ selectedWord: null, isWordModalOpen: false }),
+
+  isCloseDialogOpen: false,
+  openCloseDialog: () => set({ isCloseDialogOpen: true }),
+  closeCloseDialog: () => set({ isCloseDialogOpen: false }),
 
   toastMessage: null,
   toastType: 'info',

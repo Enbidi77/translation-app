@@ -15,6 +15,15 @@ export const electronAPI = {
   minimize: () => ipcRenderer.send(IPC_CHANNELS.APP_MINIMIZE),
   maximize: () => ipcRenderer.send(IPC_CHANNELS.APP_MAXIMIZE),
   close: () => ipcRenderer.send(IPC_CHANNELS.APP_CLOSE),
+  quitApp: () => ipcRenderer.send(IPC_CHANNELS.APP_QUIT),
+  minimizeToTray: () => ipcRenderer.send(IPC_CHANNELS.APP_MINIMIZE_TO_TRAY),
+  onRequestClose: (callback: () => void) => {
+    const handler = () => callback();
+    ipcRenderer.on(IPC_CHANNELS.EVENT_REQUEST_CLOSE, handler);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.EVENT_REQUEST_CLOSE, handler);
+    };
+  },
 
   // Overlay / Subtitle window controls
   setAlwaysOnTop: (flag: boolean) => ipcRenderer.send(IPC_CHANNELS.WINDOW_SET_ALWAYS_ON_TOP, flag),

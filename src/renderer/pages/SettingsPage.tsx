@@ -436,20 +436,34 @@ export const SettingsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-border space-y-3">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.general.minimizeToTray}
-                  onChange={(e) =>
-                    setForm({ ...form, general: { ...form.general, minimizeToTray: e.target.checked } })
-                  }
-                  className="w-4 h-4 accent-primary rounded cursor-pointer"
-                />
-                <span className="text-foreground">
-                  Thu nhỏ xuống khay hệ thống (System Tray) khi bấm nút đóng cửa sổ
-                </span>
-              </label>
+            <div className="pt-4 border-t border-border space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                  Hành động khi bấm nút đóng (X):
+                </label>
+                <select
+                  value={form.general.closeAction || (form.general.minimizeToTray ? 'minimize_to_tray' : 'ask')}
+                  onChange={(e) => {
+                    const action = e.target.value as 'ask' | 'minimize_to_tray' | 'exit';
+                    setForm({
+                      ...form,
+                      general: {
+                        ...form.general,
+                        closeAction: action,
+                        minimizeToTray: action !== 'exit',
+                      },
+                    });
+                  }}
+                  className="w-full bg-surface border border-border rounded-xl p-2.5 text-foreground text-sm focus:outline-none focus:border-primary cursor-pointer"
+                >
+                  <option value="ask">Hỏi tôi mỗi lần (Hiển thị hộp thoại lựa chọn)</option>
+                  <option value="minimize_to_tray">Thu nhỏ xuống khay hệ thống (System Tray)</option>
+                  <option value="exit">Thoát hoàn toàn ứng dụng</option>
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Chọn hiển thị hộp thoại xác nhận hoặc tự động thu nhỏ / thoát khi đóng cửa sổ.
+                </p>
+              </div>
 
               <label className="flex items-center gap-3 cursor-pointer">
                 <input

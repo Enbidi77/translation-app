@@ -168,6 +168,8 @@ export interface TranslationHistoryItem {
 import { LoggingConfig } from './logging';
 export * from './logging';
 
+export type CloseAction = 'ask' | 'minimize_to_tray' | 'exit';
+
 export interface AppSettings {
   general: {
     nativeLanguage: SupportedLanguage;
@@ -177,6 +179,7 @@ export interface AppSettings {
     startAtLogin: boolean;
     minimizeToTray: boolean;
     enableClipboardWatcher: boolean;
+    closeAction?: CloseAction;
   };
   pinyin: {
     displayMode: 'always' | 'hover' | 'learning_only';

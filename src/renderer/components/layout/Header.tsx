@@ -1,16 +1,27 @@
 import React from 'react';
 import { Minus, Square, X, Crop, Globe, Sun, Moon, Monitor } from 'lucide-react';
 import { useSettingsStore } from '../../stores/useSettingsStore';
+import { useAppStore } from '../../stores/useAppStore';
 import { I18nLocale } from '../../i18n';
 import { ThemeMode } from '../../../shared/design/theme';
 import appLogo from '../../../../assets/icon.png';
 
 export const Header: React.FC = () => {
-  const { locale, setLocale, themeMode, setThemeMode, dict } = useSettingsStore();
+  const { locale, setLocale, themeMode, setThemeMode, dict, settings } = useSettingsStore();
+  const { openCloseDialog } = useAppStore();
 
   const handleMinimize = () => window.electronAPI?.minimize();
   const handleMaximize = () => window.electronAPI?.maximize();
-  const handleClose = () => window.electronAPI?.close();
+  const handleClose = () => {
+    const action = settings?.general?.closeAction || 'ask';
+    if (action === 'exit') {
+      window.electronAPI?.quitApp();
+    } else if (action === 'minimize_to_tray') {
+      window.electronAPI?.minimizeToTray();
+    } else {
+      openCloseDialog();
+    }
+  };
   const handleTriggerSnip = () => window.electronAPI?.triggerSnip();
 
   return (

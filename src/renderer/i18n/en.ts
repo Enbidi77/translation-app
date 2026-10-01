@@ -151,4 +151,17 @@ export const en = {
     saveBtn: 'Save Changes',
     saveSuccess: 'Settings saved successfully!',
   },
+  closeDialog: {
+    title: 'Close Application',
+    subtitle: 'How would you like to close PolyglotDesktop?',
+    minimizeTitle: 'Minimize to System Tray',
+    minimizeDesc: 'The app continues running in the background tray. Shortcuts remain active for fast translation.',
+    minimizeRecommended: 'Recommended',
+    exitTitle: 'Exit Completely',
+    exitDesc: 'Close the entire application and stop all background services. Shortcuts will be disabled until relaunched.',
+    rememberChoice: 'Remember my choice (do not ask again)',
+    rememberHint: 'You can change this preference anytime in General Settings.',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+  },
 };

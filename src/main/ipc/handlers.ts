@@ -10,6 +10,7 @@ import { TranslationManager } from '../../providers/translation';
 import { OcrManager } from '../../providers/ocr';
 import { AiManager } from '../../providers/ai';
 import { ScreenService, CropRect } from '../services/screenService';
+import { MainWindowManager } from '../windows/mainWindow';
 import { SnipWindowManager } from '../windows/snipWindow';
 import { OverlayWindowManager } from '../windows/overlayWindow';
 import { SubtitleWindowManager } from '../windows/subtitleWindow';
@@ -112,6 +113,18 @@ export function setupIpcHandlers() {
   ipcMain.on(IPC_CHANNELS.APP_CLOSE, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     win?.close();
+  });
+
+  ipcMain.on(IPC_CHANNELS.APP_QUIT, () => {
+    MainWindowManager.getInstance().setForceQuitting(true);
+    app.quit();
+  });
+
+  ipcMain.on(IPC_CHANNELS.APP_MINIMIZE_TO_TRAY, (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender) || MainWindowManager.getInstance().getWindow();
+    if (win && !win.isDestroyed()) {
+      win.hide();
+    }
   });
 
   ipcMain.on(IPC_CHANNELS.WINDOW_SET_ALWAYS_ON_TOP, (event, flag: boolean) => {

@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-route
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { WordBreakdownModal } from './components/common/WordBreakdownModal';
+import { CloseAppModal } from './components/common/CloseAppModal';
 import { useAppStore } from './stores/useAppStore';
 import { useSettingsStore } from './stores/useSettingsStore';
 
@@ -33,7 +34,7 @@ import { SubtitleOverlay } from './windows/SubtitleOverlay';
 const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toastMessage, toastType, showToast } = useAppStore();
+  const { toastMessage, toastType, showToast, openCloseDialog } = useAppStore();
   const { fetchSettings, initTheme } = useSettingsStore();
 
   useEffect(() => {
@@ -51,10 +52,16 @@ const AppLayout: React.FC = () => {
       showToast(`Đã phát hiện văn bản mới sao chép: "${text.substring(0, 30)}..."`, 'info');
     });
 
+    // Listen for close requests from main process (Alt+F4 or system close)
+    const unsubClose = window.electronAPI?.onRequestClose(() => {
+      openCloseDialog();
+    });
+
     return () => {
       unsubTheme?.();
       unsubNavigate?.();
       unsubClipboard?.();
+      unsubClose?.();
     };
   }, []);
 
@@ -115,6 +122,9 @@ const AppLayout: React.FC = () => {
 
       {/* Global Word Modal */}
       <WordBreakdownModal />
+
+      {/* Global Close App Dialog */}
+      <CloseAppModal />
 
       {/* Global Toast Notification */}
       {toastMessage && (

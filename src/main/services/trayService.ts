@@ -100,12 +100,22 @@ export class TrayService {
       {
         label: 'Thoát hoàn toàn',
         click: () => {
+          MainWindowManager.getInstance().setForceQuitting(true);
           app.quit();
         },
       },
     ]);
 
     this.tray.setContextMenu(contextMenu);
+    this.tray.on('click', () => {
+      const win = MainWindowManager.getInstance().getWindow();
+      if (win) {
+        win.show();
+        win.focus();
+      } else {
+        MainWindowManager.getInstance().createWindow();
+      }
+    });
     this.tray.on('double-click', () => {
       const win = MainWindowManager.getInstance().getWindow();
       if (win) {

@@ -151,4 +151,17 @@ export const vi = {
     saveBtn: 'Lưu thay đổi',
     saveSuccess: 'Đã lưu cài đặt thành công!',
   },
+  closeDialog: {
+    title: 'Đóng ứng dụng',
+    subtitle: 'Bạn muốn đóng ứng dụng PolyglotDesktop như thế nào?',
+    minimizeTitle: 'Thu nhỏ xuống khay hệ thống',
+    minimizeDesc: 'Ứng dụng tiếp tục chạy ngầm trong khay hệ thống (System Tray). Phím tắt toàn cục vẫn hoạt động để dịch nhanh mọi lúc.',
+    minimizeRecommended: 'Khuyên dùng',
+    exitTitle: 'Thoát hoàn toàn ứng dụng',
+    exitDesc: 'Đóng toàn bộ ứng dụng và giải phóng bộ nhớ. Phím tắt sẽ tạm dừng cho đến khi mở lại.',
+    rememberChoice: 'Ghi nhớ lựa chọn này (không hỏi lại lần sau)',
+    rememberHint: 'Bạn có thể thay đổi lại lựa chọn này trong Cài đặt chung bất kỳ lúc nào.',
+    cancel: 'Hủy bỏ',
+    confirm: 'Xác nhận',
+  },
 };

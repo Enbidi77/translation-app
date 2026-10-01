@@ -151,4 +151,17 @@ export const zh = {
     saveBtn: '保存修改',
     saveSuccess: '设置已成功更新！',
   },
+  closeDialog: {
+    title: '关闭应用',
+    subtitle: '请选择关闭 PolyglotDesktop 的方式',
+    minimizeTitle: '最小化到系统托盘',
+    minimizeDesc: '应用在系统托盘后台运行，全局快捷键依然可用，可随时快速唤醒。',
+    minimizeRecommended: '推荐',
+    exitTitle: '完全退出应用',
+    exitDesc: '完全关闭应用程序并停止所有后台服务，快捷键将失效直到重新打开。',
+    rememberChoice: '记住我的选择（以后不再提示）',
+    rememberHint: '您可以在“通用配置”中随时更改此选项。',
+    cancel: '取消',
+    confirm: '确定',
+  },
 };

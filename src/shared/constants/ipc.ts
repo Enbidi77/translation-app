@@ -4,6 +4,8 @@ export const IPC_CHANNELS = {
   APP_MINIMIZE: 'app:minimize',
   APP_MAXIMIZE: 'app:maximize',
   APP_CLOSE: 'app:close',
+  APP_QUIT: 'app:quit',
+  APP_MINIMIZE_TO_TRAY: 'app:minimize-to-tray',
   WINDOW_OPEN_OVERLAY: 'window:open-overlay',
   WINDOW_CLOSE_OVERLAY: 'window:close-overlay',
   WINDOW_SET_ALWAYS_ON_TOP: 'window:set-always-on-top',
@@ -81,4 +83,5 @@ export const IPC_CHANNELS = {
   EVENT_SNIP_START: 'event:snip-start',
   EVENT_THEME_UPDATED: 'event:theme-updated',
   EVENT_LOG_NEW: 'event:log-new',
+  EVENT_REQUEST_CLOSE: 'event:request-close',
 } as const;

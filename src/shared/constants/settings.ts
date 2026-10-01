@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     startAtLogin: false,
     minimizeToTray: true,
     enableClipboardWatcher: true,
+    closeAction: 'ask',
   },
   pinyin: {
     displayMode: 'always',
