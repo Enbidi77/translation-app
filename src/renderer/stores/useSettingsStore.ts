@@ -50,10 +50,16 @@ const initialStoredTheme = (
 const initialEffectiveTheme = resolveEffectiveTheme(initialStoredTheme);
 applyThemeToDOM(initialEffectiveTheme);
 
+const initialStoredLocale = (
+  typeof localStorage !== 'undefined'
+    ? (localStorage.getItem('app_locale') as I18nLocale) || 'vi'
+    : 'vi'
+);
+
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: DEFAULT_SETTINGS,
-  locale: 'vi',
-  dict: getDictionary('vi'),
+  locale: initialStoredLocale,
+  dict: getDictionary(initialStoredLocale),
   themeMode: initialStoredTheme,
   effectiveTheme: initialEffectiveTheme,
   subtitleTheme: 'follow_app',
@@ -215,6 +221,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   },
 
   setLocale: (locale) => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('app_locale', locale);
+    }
     set({
       locale,
       dict: getDictionary(locale),

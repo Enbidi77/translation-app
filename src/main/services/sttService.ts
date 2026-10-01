@@ -167,6 +167,18 @@ export class SttService {
       'en': 'English',
       'vi-VN': 'Vietnamese',
       'vi': 'Vietnamese',
+      'ja-JP': 'Japanese',
+      'ja': 'Japanese',
+      'ko-KR': 'Korean',
+      'ko': 'Korean',
+      'fr-FR': 'French',
+      'fr': 'French',
+      'de-DE': 'German',
+      'de': 'German',
+      'es-ES': 'Spanish',
+      'es': 'Spanish',
+      'ru-RU': 'Russian',
+      'ru': 'Russian',
     };
 
     const srcName = langNames[sourceLang] || sourceLang;
@@ -293,7 +305,8 @@ Respond with ONLY valid JSON adhering to this exact format:
     formData.append('model', 'whisper-1');
 
     const isoLang = sourceLang.split('-')[0].toLowerCase();
-    if (isoLang === 'zh' || isoLang === 'en' || isoLang === 'vi') {
+    const validWhisperLangs = ['zh', 'en', 'vi', 'ja', 'ko', 'fr', 'de', 'es', 'ru', 'it', 'pt'];
+    if (validWhisperLangs.includes(isoLang)) {
       formData.append('language', isoLang);
     }
 

@@ -6,9 +6,9 @@
   "author": "Google DeepMind / Antigravity",
   "license": "MIT",
   "scripts": {
-    "dev": "concurrently -k \"npm run dev:renderer\" \"npm run dev:electron\"",
-    "dev:renderer": "vite",
-    "dev:electron": "tsup src/main/index.ts src/preload/index.ts --format cjs --out-dir dist-electron --external electron --watch --onSuccess \"node scripts/copy-wasm.js && electron .\"",
+    "dev": "concurrently -k -n web,app -c cyan,magenta \"node scripts/kill-port.js && vite\" \"tsup src/main/index.ts src/preload/index.ts --format cjs --out-dir dist-electron --external electron --watch --onSuccess \\\"node scripts/launch-electron.js\\\"\"",
+    "dev:renderer": "node scripts/kill-port.js && vite",
+    "dev:electron": "tsup src/main/index.ts src/preload/index.ts --format cjs --out-dir dist-electron --external electron --watch --onSuccess \"node scripts/launch-electron.js\"",
     "build:renderer": "vite build",
     "build:electron": "tsup src/main/index.ts src/preload/index.ts --format cjs --out-dir dist-electron --external electron && node scripts/copy-wasm.js",
     "build": "npm run build:renderer && npm run build:electron",

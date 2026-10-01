@@ -4,6 +4,10 @@ export const SEED_LANGUAGES = [
   { code: 'en', name: 'English', native_name: 'English' },
   { code: 'ja', name: 'Japanese', native_name: '日本語' },
   { code: 'ko', name: 'Korean', native_name: '한국어' },
+  { code: 'fr', name: 'French', native_name: 'Français' },
+  { code: 'de', name: 'German', native_name: 'Deutsch' },
+  { code: 'es', name: 'Spanish', native_name: 'Español' },
+  { code: 'ru', name: 'Russian', native_name: 'Русский' },
 ];
 
 export const SEED_VOCABULARY = [
@@ -241,6 +245,65 @@ export const SEED_VOCABULARY = [
       {
         sentence: 'Pay special attention to your tones and pronunciation.',
         translation: 'Hãy đặc biệt chú ý đến thanh điệu và cách phát âm của bạn.',
+      },
+    ],
+  },
+  // Japanese Vocabulary
+  {
+    word: 'こんにちは',
+    language: 'ja',
+    translation: 'Xin chào',
+    pinyin: 'konnichiwa',
+    ipa: '/koɲɲitɕiwa/',
+    part_of_speech: 'Lời chào',
+    definition: 'Lời chào ban ngày thông dụng trong tiếng Nhật.',
+    difficulty: 1,
+    source: 'manual',
+    notes: 'Dùng từ trưa đến chiều.',
+    examples: [
+      {
+        sentence: '皆さん、こんにちは！',
+        pinyin: 'Minasan, konnichiwa!',
+        translation: 'Chào mọi người!',
+      },
+    ],
+  },
+  // Korean Vocabulary
+  {
+    word: '안녕하세요',
+    language: 'ko',
+    translation: 'Xin chào',
+    pinyin: 'annyeonghaseyo',
+    ipa: '/annjʌŋhasejo/',
+    part_of_speech: 'Lời chào lịch sự',
+    definition: 'Lời chào lịch thiệp, tôn kính trong tiếng Hàn.',
+    difficulty: 1,
+    source: 'manual',
+    notes: 'Hình thức kính ngữ tiêu chuẩn.',
+    examples: [
+      {
+        sentence: '안녕하세요, 만나서 반갑습니다.',
+        pinyin: 'Annyeonghaseyo, mannaseo bangapseumnida.',
+        translation: 'Xin chào, rất vui được gặp bạn.',
+      },
+    ],
+  },
+  // French Vocabulary
+  {
+    word: 'bonjour',
+    language: 'fr',
+    translation: 'Xin chào, chúc một ngày tốt lành',
+    ipa: '/bɔ̃.ʒuʁ/',
+    part_of_speech: 'Lời chào',
+    definition: 'Lời chào ban ngày trang nhã, thông dụng.',
+    difficulty: 1,
+    cefr_level: 'A1',
+    source: 'manual',
+    notes: 'Dùng từ sáng đến trước lúc hoàng hôn.',
+    examples: [
+      {
+        sentence: 'Bonjour tout le monde !',
+        translation: 'Xin chào tất cả mọi người!',
       },
     ],
   },

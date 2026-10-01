@@ -7,10 +7,10 @@ export default defineConfig({
   base: './',
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src/renderer'),
-      '@shared': path.resolve(__dirname, './src/shared'),
-      '@database': path.resolve(__dirname, './src/database'),
-      '@providers': path.resolve(__dirname, './src/providers'),
+      '@': path.resolve(import.meta.dirname, './src/renderer'),
+      '@shared': path.resolve(import.meta.dirname, './src/shared'),
+      '@database': path.resolve(import.meta.dirname, './src/database'),
+      '@providers': path.resolve(import.meta.dirname, './src/providers'),
     },
   },
   server: {

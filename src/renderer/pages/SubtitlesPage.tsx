@@ -29,6 +29,8 @@ import { useAppStore } from '../stores/useAppStore';
 import { TonePinyin } from '../components/common/TonePinyin';
 import { AudioPlayer } from '../components/common/AudioPlayer';
 import { SubtitleThemeMode } from '../../shared/design/theme';
+import { SupportedLanguage } from '../../shared/types';
+import { POPULAR_LANGUAGES } from '../../shared/constants/languages';
 import { soundManager } from '../services/audioService';
 import { FeatureGate } from '../FeatureGate';
 
@@ -61,8 +63,8 @@ export const SubtitlesPage: React.FC = () => {
   // Live microphone real-time subtitle translation
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [sourceLang, setSourceLang] = useState<'zh-CN' | 'en-US' | 'vi-VN'>('zh-CN');
-  const [targetLang, setTargetLang] = useState<'vi' | 'zh' | 'en'>('vi');
+  const [sourceLang, setSourceLang] = useState<string>('zh-CN');
+  const [targetLang, setTargetLang] = useState<SupportedLanguage>('vi');
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -488,9 +490,11 @@ export const SubtitlesPage: React.FC = () => {
                 onChange={(e) => setSourceLang(e.target.value as any)}
                 className="bg-surface border border-border text-foreground rounded-xl px-2.5 py-1 text-xs focus:outline-none focus:border-primary shadow-google-sm"
               >
-                <option value="zh-CN">Tiếng Trung (zh-CN)</option>
-                <option value="en-US">Tiếng Anh (en-US)</option>
-                <option value="vi-VN">Tiếng Việt (vi-VN)</option>
+                {POPULAR_LANGUAGES.map((l) => (
+                  <option key={l.speechLocale} value={l.speechLocale}>
+                    {l.flag} {l.nativeName} ({l.speechLocale})
+                  </option>
+                ))}
               </select>
 
               <span className="text-muted-foreground font-bold">→</span>
@@ -500,9 +504,11 @@ export const SubtitlesPage: React.FC = () => {
                 onChange={(e) => setTargetLang(e.target.value as any)}
                 className="bg-surface border border-border text-foreground rounded-xl px-2.5 py-1 text-xs focus:outline-none focus:border-primary shadow-google-sm"
               >
-                <option value="vi">Tiếng Việt</option>
-                <option value="zh">Tiếng Trung</option>
-                <option value="en">Tiếng Anh</option>
+                {POPULAR_LANGUAGES.map((l) => (
+                  <option key={l.code} value={l.code}>
+                    {l.flag} {l.nativeName} ({l.name})
+                  </option>
+                ))}
               </select>
             </div>
           </div>

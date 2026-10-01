@@ -17,6 +17,7 @@ import { useSettingsStore } from '../stores/useSettingsStore';
 import { useAppStore } from '../stores/useAppStore';
 import { useVocabularyStore } from '../stores/useVocabularyStore';
 import { TranslationResponse, SupportedLanguage, TranslationQualityMode } from '../../shared/types';
+import { POPULAR_LANGUAGES } from '../../shared/constants/languages';
 import { TonePinyin } from '../components/common/TonePinyin';
 import { AudioPlayer } from '../components/common/AudioPlayer';
 
@@ -219,10 +220,12 @@ export const TranslatePage: React.FC = () => {
               onChange={(e) => setSourceLang(e.target.value as any)}
               className="bg-surface-hover border border-border text-foreground rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-primary"
             >
-              <option value="auto">Tự động nhận diện</option>
-              <option value="zh">Tiếng Trung (简体中文)</option>
-              <option value="en">Tiếng Anh (English)</option>
-              <option value="vi">Tiếng Việt</option>
+              <option value="auto">🌐 {dict.translate?.sourceLang ? 'Auto Detect' : 'Tự động nhận diện'}</option>
+              {POPULAR_LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code}>
+                  {l.flag} {l.nativeName} ({l.name})
+                </option>
+              ))}
             </select>
           </div>
 
@@ -247,9 +250,11 @@ export const TranslatePage: React.FC = () => {
               onChange={(e) => setTargetLang(e.target.value as any)}
               className="bg-surface-hover border border-border text-foreground rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-primary"
             >
-              <option value="vi">Tiếng Việt</option>
-              <option value="zh">Tiếng Trung (简体中文)</option>
-              <option value="en">Tiếng Anh (English)</option>
+              {POPULAR_LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code}>
+                  {l.flag} {l.nativeName} ({l.name})
+                </option>
+              ))}
             </select>
           </div>
         </div>

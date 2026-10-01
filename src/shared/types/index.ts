@@ -1,4 +1,4 @@
-export type SupportedLanguage = 'vi' | 'zh' | 'en' | 'ja' | 'ko';
+export type SupportedLanguage = 'vi' | 'zh' | 'en' | 'ja' | 'ko' | 'fr' | 'de' | 'es' | 'ru';
 
 export interface UserProfile {
   id: number;

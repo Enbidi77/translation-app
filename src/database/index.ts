@@ -77,13 +77,11 @@ export class DatabaseService {
     // Check languages
     const langRes = this.db.exec('SELECT COUNT(*) as count FROM languages');
     const langCount = (langRes[0]?.values[0]?.[0] as number) || 0;
-    if (langCount === 0) {
-      const stmt = this.db.prepare('INSERT INTO languages (code, name, native_name) VALUES (?, ?, ?)');
-      for (const lang of SEED_LANGUAGES) {
-        stmt.run([lang.code, lang.name, lang.native_name]);
-      }
-      stmt.free();
+    const stmt = this.db.prepare('INSERT OR IGNORE INTO languages (code, name, native_name) VALUES (?, ?, ?)');
+    for (const lang of SEED_LANGUAGES) {
+      stmt.run([lang.code, lang.name, lang.native_name]);
     }
+    stmt.free();
 
     // Check vocabulary
     const vocabRes = this.db.exec('SELECT COUNT(*) as count FROM vocabulary');

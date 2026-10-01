@@ -30,6 +30,7 @@ import { useAppStore } from '../stores/useAppStore';
 import { useFeatureFlags } from '../useFeatureFlags';
 import { FEATURE_FLAGS, FeatureFlagId } from '../featureFlags';
 import { AppSettings } from '../../shared/types';
+import { POPULAR_LANGUAGES } from '../../shared/constants/languages';
 import { ThemeMode, SubtitleThemeMode } from '../../shared/design/theme';
 import { ThemePreviewCard } from '../components/common/ThemePreviewCard';
 
@@ -415,9 +416,11 @@ export const SettingsPage: React.FC = () => {
                   }
                   className="w-full bg-surface border border-border rounded-2xl p-2.5 text-foreground focus:outline-none focus:border-primary"
                 >
-                  <option value="vi">Tiếng Việt (Mặc định)</option>
-                  <option value="en">English</option>
-                  <option value="zh">简体中文</option>
+                  {POPULAR_LANGUAGES.map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {l.flag} {l.vietnameseName} ({l.nativeName})
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -430,8 +433,11 @@ export const SettingsPage: React.FC = () => {
                   }
                   className="w-full bg-surface border border-border rounded-2xl p-2.5 text-foreground focus:outline-none focus:border-primary"
                 >
-                  <option value="zh">Tiếng Trung Giản Thể (HSK)</option>
-                  <option value="en">Tiếng Anh (CEFR)</option>
+                  {POPULAR_LANGUAGES.map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {l.flag} {l.vietnameseName} {l.levelFramework ? `(${l.levelFramework})` : `(${l.nativeName})`}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

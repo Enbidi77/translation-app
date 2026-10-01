@@ -26,6 +26,7 @@ import { useSettingsStore } from '../stores/useSettingsStore';
 import { useAppStore } from '../stores/useAppStore';
 import { useVocabularyStore } from '../stores/useVocabularyStore';
 import { SupportedLanguage } from '../../shared/types';
+import { POPULAR_LANGUAGES } from '../../shared/constants/languages';
 import { TonePinyin } from '../components/common/TonePinyin';
 import { AudioPlayer } from '../components/common/AudioPlayer';
 import { soundManager } from '../services/audioService';
@@ -53,7 +54,7 @@ export const VoicePage: React.FC = () => {
   const [autoStopSilence, setAutoStopSilence] = useState(true);
   const [continuousMode, setContinuousMode] = useState(false);
 
-  const [sourceLang, setSourceLang] = useState<'zh-CN' | 'en-US' | 'vi-VN'>('zh-CN');
+  const [sourceLang, setSourceLang] = useState<string>('zh-CN');
   const [targetLang, setTargetLang] = useState<SupportedLanguage>('vi');
   const [transcript, setTranscript] = useState('');
   const [translation, setTranslation] = useState('');
@@ -372,22 +373,11 @@ export const VoicePage: React.FC = () => {
 
   // Language swap handler
   const handleSwapLanguages = () => {
-    if (sourceLang === 'zh-CN') {
-      setSourceLang('vi-VN');
-      setTargetLang('zh');
-    } else if (sourceLang === 'en-US') {
-      setSourceLang('vi-VN');
-      setTargetLang('en');
-    } else {
-      // currently vi-VN
-      if (targetLang === 'zh') {
-        setSourceLang('zh-CN');
-        setTargetLang('vi');
-      } else {
-        setSourceLang('en-US');
-        setTargetLang('vi');
-      }
-    }
+    const srcLangCode = sourceLang.split('-')[0].toLowerCase() as SupportedLanguage;
+    const tgtMeta = POPULAR_LANGUAGES.find((l) => l.code === targetLang);
+    const newSpeechLocale = tgtMeta?.speechLocale || `${targetLang}-${targetLang.toUpperCase()}`;
+    setSourceLang(newSpeechLocale);
+    setTargetLang(srcLangCode);
   };
 
   // Quick API Key Save
@@ -557,9 +547,11 @@ export const VoicePage: React.FC = () => {
             onChange={(e) => setSourceLang(e.target.value as any)}
             className="bg-surface border border-border text-foreground rounded-2xl px-3 py-1.5 text-xs font-medium focus:outline-none focus:border-primary shadow-google-sm"
           >
-            <option value="zh-CN">🇨🇳 Nói Tiếng Trung (zh-CN)</option>
-            <option value="en-US">🇺🇸 Nói Tiếng Anh (en-US)</option>
-            <option value="vi-VN">🇻🇳 Nói Tiếng Việt (vi-VN)</option>
+            {POPULAR_LANGUAGES.map((l) => (
+              <option key={l.speechLocale} value={l.speechLocale}>
+                {l.flag} Nói {l.nativeName} ({l.speechLocale})
+              </option>
+            ))}
           </select>
 
           <button
@@ -575,9 +567,11 @@ export const VoicePage: React.FC = () => {
             onChange={(e) => setTargetLang(e.target.value as any)}
             className="bg-surface border border-border text-foreground rounded-2xl px-3 py-1.5 text-xs font-medium focus:outline-none focus:border-primary shadow-google-sm"
           >
-            <option value="vi">🇻🇳 Dịch sang Tiếng Việt</option>
-            <option value="zh">🇨🇳 Dịch sang Tiếng Trung</option>
-            <option value="en">🇺🇸 Dịch sang Tiếng Anh</option>
+            {POPULAR_LANGUAGES.map((l) => (
+              <option key={l.code} value={l.code}>
+                {l.flag} Dịch sang {l.nativeName} ({l.name})
+              </option>
+            ))}
           </select>
         </div>
 

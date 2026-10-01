@@ -108,6 +108,11 @@ export const Header: React.FC = () => {
             <option value="vi">Tiếng Việt</option>
             <option value="en">English</option>
             <option value="zh">简体中文</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+            <option value="de">Deutsch</option>
           </select>
         </div>
 

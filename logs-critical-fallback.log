@@ -1,3 +1,12 @@
 [2026-09-27T14:38:43.510Z] [ERROR] [system] This error should be preserved in fallback buffer 
 [2026-10-01T03:42:43.236Z] [ERROR] [system] This error should be preserved in fallback buffer 
 [2026-10-01T04:00:12.956Z] [ERROR] [system] This error should be preserved in fallback buffer 
+[2026-10-01T04:10:31.643Z] [ERROR] [system] This error should be preserved in fallback buffer 
+[2026-10-01T04:20:42.718Z] [ERROR] [system] This error should be preserved in fallback buffer 
+[2026-10-01T04:21:20.391Z] [ERROR] [system] This error should be preserved in fallback buffer 
+[2026-10-01T04:22:54.988Z] [ERROR] [system] This error should be preserved in fallback buffer 
+[2026-10-01T06:00:24.783Z] [ERROR] [system] This error should be preserved in fallback buffer 
+[2026-10-01T06:07:04.317Z] [FATAL] [system] Uncaught Exception in Main Process Cannot read properties of undefined (reading 'requestSingleInstanceLock')
+[2026-10-01T06:08:39.744Z] [FATAL] [system] Uncaught Exception in Main Process Cannot read properties of undefined (reading 'requestSingleInstanceLock')
+[2026-10-01T06:12:46.979Z] [ERROR] [system] This error should be preserved in fallback buffer 
+[2026-10-01T06:18:01.903Z] [ERROR] [system] This error should be preserved in fallback buffer 

@@ -52,7 +52,16 @@ class SoundManager {
     if (lang === 'zh' || lang === 'zh-CN') normalizedLang = 'zh-CN';
     else if (lang === 'en' || lang === 'en-US') normalizedLang = 'en';
     else if (lang === 'vi' || lang === 'vi-VN') normalizedLang = 'vi';
+    else if (lang === 'ja' || lang === 'ja-JP') normalizedLang = 'ja';
+    else if (lang === 'ko' || lang === 'ko-KR') normalizedLang = 'ko';
+    else if (lang === 'fr' || lang === 'fr-FR') normalizedLang = 'fr';
+    else if (lang === 'de' || lang === 'de-DE') normalizedLang = 'de';
+    else if (lang === 'es' || lang === 'es-ES') normalizedLang = 'es';
+    else if (lang === 'ru' || lang === 'ru-RU') normalizedLang = 'ru';
+    else if (/[\u3040-\u30ff]/.test(trimmed)) normalizedLang = 'ja';
+    else if (/[\uac00-\ud7af]/.test(trimmed)) normalizedLang = 'ko';
     else if (/[\u4e00-\u9fa5]/.test(trimmed)) normalizedLang = 'zh-CN';
+    else if (/[\u0400-\u04ff]/.test(trimmed)) normalizedLang = 'ru';
     else if (/[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(trimmed)) normalizedLang = 'vi';
 
     // 1. Primary: High-fidelity natural TTS via Electron IPC
@@ -127,21 +136,23 @@ class SoundManager {
     const voices = window.speechSynthesis.getVoices();
     let bestVoice: SpeechSynthesisVoice | undefined;
 
-    if (lang.startsWith('zh')) {
-      utterance.lang = 'zh-CN';
-      bestVoice = voices.find(
-        (v) => v.lang.startsWith('zh') || /chinese|mandarin|huihui|yaoyao|han/i.test(v.name)
-      );
-    } else if (lang.startsWith('en')) {
-      utterance.lang = 'en-US';
-      bestVoice = voices.find(
-        (v) => v.lang.startsWith('en') || /english|david|zira|mark|natural/i.test(v.name)
-      );
-    } else {
-      utterance.lang = 'vi-VN';
-      bestVoice = voices.find(
-        (v) => v.lang.startsWith('vi') || /vietnamese|an|mai/i.test(v.name)
-      );
+    let bcp47 = 'en-US';
+    if (lang.startsWith('zh')) bcp47 = 'zh-CN';
+    else if (lang.startsWith('vi')) bcp47 = 'vi-VN';
+    else if (lang.startsWith('ja')) bcp47 = 'ja-JP';
+    else if (lang.startsWith('ko')) bcp47 = 'ko-KR';
+    else if (lang.startsWith('fr')) bcp47 = 'fr-FR';
+    else if (lang.startsWith('de')) bcp47 = 'de-DE';
+    else if (lang.startsWith('es')) bcp47 = 'es-ES';
+    else if (lang.startsWith('ru')) bcp47 = 'ru-RU';
+    else if (lang.startsWith('en')) bcp47 = 'en-US';
+
+    utterance.lang = bcp47;
+    const prefix = bcp47.split('-')[0].toLowerCase();
+
+    bestVoice = voices.find((v) => v.lang.toLowerCase().startsWith(prefix));
+    if (!bestVoice && voices.length > 0) {
+      bestVoice = voices.find((v) => v.lang.toLowerCase().includes(prefix));
     }
 
     if (bestVoice) {

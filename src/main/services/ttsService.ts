@@ -47,11 +47,38 @@ export class TtsService {
     if (raw.startsWith('vi') || raw.includes('vietnam')) {
       return 'vi';
     }
+    if (raw.startsWith('ja') || raw.includes('japan')) {
+      return 'ja';
+    }
+    if (raw.startsWith('ko') || raw.includes('korean')) {
+      return 'ko';
+    }
+    if (raw.startsWith('fr') || raw.includes('french')) {
+      return 'fr';
+    }
+    if (raw.startsWith('de') || raw.includes('german')) {
+      return 'de';
+    }
+    if (raw.startsWith('es') || raw.includes('spanish')) {
+      return 'es';
+    }
+    if (raw.startsWith('ru') || raw.includes('russian')) {
+      return 'ru';
+    }
 
     // Auto-detect based on text content if language is not explicitly provided
     if (text) {
+      if (/[\u3040-\u30ff]/.test(text)) {
+        return 'ja';
+      }
+      if (/[\uac00-\ud7af]/.test(text)) {
+        return 'ko';
+      }
       if (/[\u4e00-\u9fa5]/.test(text)) {
         return 'zh-CN';
+      }
+      if (/[\u0400-\u04ff]/.test(text)) {
+        return 'ru';
       }
       if (/[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(text)) {
         return 'vi';

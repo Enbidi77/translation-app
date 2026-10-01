@@ -14,7 +14,8 @@ import {
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { useVocabularyStore } from '../stores/useVocabularyStore';
 import { useAppStore } from '../stores/useAppStore';
-import { VocabularyItem } from '../../shared/types';
+import { VocabularyItem, SupportedLanguage } from '../../shared/types';
+import { POPULAR_LANGUAGES } from '../../shared/constants/languages';
 import { TonePinyin } from '../components/common/TonePinyin';
 import { AudioPlayer } from '../components/common/AudioPlayer';
 
@@ -35,7 +36,7 @@ export const VocabularyPage: React.FC = () => {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newWord, setNewWord] = useState('');
-  const [newLanguage, setNewLanguage] = useState<'zh' | 'en'>('zh');
+  const [newLanguage, setNewLanguage] = useState<SupportedLanguage>('zh');
   const [newTranslation, setNewTranslation] = useState('');
   const [newPinyin, setNewPinyin] = useState('');
   const [newPos, setNewPos] = useState('');
@@ -123,26 +124,20 @@ export const VocabularyPage: React.FC = () => {
           >
             {dict.vocabulary.filterAll} ({items.length})
           </button>
-          <button
-            onClick={() => setFilterLanguage('zh')}
-            className={`px-3 py-1.5 rounded-xl font-medium transition-colors ${
-              filterLanguage === 'zh' 
-                ? 'bg-destructive-muted text-destructive border border-destructive/30 font-semibold' 
-                : 'text-foreground-secondary hover:text-foreground hover:bg-surface-hover'
-            }`}
-          >
-            {dict.vocabulary.filterChinese}
-          </button>
-          <button
-            onClick={() => setFilterLanguage('en')}
-            className={`px-3 py-1.5 rounded-xl font-medium transition-colors ${
-              filterLanguage === 'en' 
-                ? 'bg-primary-muted text-primary border border-primary/30 font-semibold' 
-                : 'text-foreground-secondary hover:text-foreground hover:bg-surface-hover'
-            }`}
-          >
-            {dict.vocabulary.filterEnglish}
-          </button>
+          {POPULAR_LANGUAGES.map((l) => (
+            <button
+              key={l.code}
+              onClick={() => setFilterLanguage(l.code)}
+              className={`px-2.5 py-1.5 rounded-xl font-medium transition-colors flex items-center gap-1 text-xs ${
+                filterLanguage === l.code 
+                  ? 'bg-primary-muted text-primary border border-primary/30 font-semibold shadow-google-sm' 
+                  : 'text-foreground-secondary hover:text-foreground hover:bg-surface-hover'
+              }`}
+            >
+              <span>{l.flag}</span>
+              <span>{l.nativeName}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -249,8 +244,11 @@ export const VocabularyPage: React.FC = () => {
                   onChange={(e) => setNewLanguage(e.target.value as any)}
                   className="w-full bg-surface border border-border rounded-xl p-2.5 text-foreground focus:outline-none focus:border-primary"
                 >
-                  <option value="zh">Tiếng Trung (简体中文)</option>
-                  <option value="en">Tiếng Anh (English)</option>
+                  {POPULAR_LANGUAGES.map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {l.flag} {l.nativeName} ({l.vietnameseName})
+                    </option>
+                  ))}
                 </select>
               </div>
 

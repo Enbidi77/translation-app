@@ -10,7 +10,10 @@ export class GoogleTranslateProvider implements ITranslationProvider {
   }
 
   public async detectLanguage(text: string): Promise<SupportedLanguage> {
+    if (/[\u3040-\u30ff]/.test(text)) return 'ja';
+    if (/[\uac00-\ud7af]/.test(text)) return 'ko';
     if (PinyinService.isChinese(text)) return 'zh';
+    if (/[\u0400-\u04ff]/.test(text)) return 'ru';
     if (/[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(text)) {
       return 'vi';
     }
@@ -99,16 +102,25 @@ export class GoogleTranslateProvider implements ITranslationProvider {
       case 'en': return 'en';
       case 'ja': return 'ja';
       case 'ko': return 'ko';
+      case 'fr': return 'fr';
+      case 'de': return 'de';
+      case 'es': return 'es';
+      case 'ru': return 'ru';
       default: return lang;
     }
   }
 
   private reverseMapLangCode(code: string): SupportedLanguage {
-    if (code.startsWith('zh')) return 'zh';
-    if (code.startsWith('vi')) return 'vi';
-    if (code.startsWith('en')) return 'en';
-    if (code.startsWith('ja')) return 'ja';
-    if (code.startsWith('ko')) return 'ko';
+    const lower = (code || '').toLowerCase();
+    if (lower.startsWith('zh')) return 'zh';
+    if (lower.startsWith('vi')) return 'vi';
+    if (lower.startsWith('en')) return 'en';
+    if (lower.startsWith('ja')) return 'ja';
+    if (lower.startsWith('ko')) return 'ko';
+    if (lower.startsWith('fr')) return 'fr';
+    if (lower.startsWith('de')) return 'de';
+    if (lower.startsWith('es')) return 'es';
+    if (lower.startsWith('ru')) return 'ru';
     return 'en';
   }
 }

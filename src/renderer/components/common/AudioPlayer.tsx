@@ -55,6 +55,12 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     if (l.startsWith('zh')) return 'tiếng Trung';
     if (l.startsWith('en')) return 'tiếng Anh';
     if (l.startsWith('vi')) return 'tiếng Việt';
+    if (l.startsWith('ja')) return 'tiếng Nhật';
+    if (l.startsWith('ko')) return 'tiếng Hàn';
+    if (l.startsWith('fr')) return 'tiếng Pháp';
+    if (l.startsWith('de')) return 'tiếng Đức';
+    if (l.startsWith('es')) return 'tiếng Tây Ban Nha';
+    if (l.startsWith('ru')) return 'tiếng Nga';
     return l;
   };
 
